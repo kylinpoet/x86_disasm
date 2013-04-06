@@ -11,6 +11,7 @@
 //#include "printf-utils.h"
 //#include "win32_utils.hpp"
 #include "strbuf.h"
+#include "fuzzybool.h"
 
 //using namespace std;
 
@@ -108,13 +109,18 @@ typedef struct _Da
 } Da;
 //#pragma pack(pop)
 
+typedef BOOL (*callback_read_byte)(void* param, disas_address adr, uint8_t* out);
+typedef BOOL (*callback_read_word)(void* param, disas_address adr, uint16_t* out);
+typedef BOOL (*callback_read_dword)(void* param, disas_address adr, uint32_t* out);
+typedef BOOL (*callback_read_oword)(void* param, disas_address adr, uint64_t* out);
+
 // functions to work with Da struct
-Da* Da_stage1_into_result (Da_stage1 *stage1, disas_address adr_of_ins);
-Da* Da_Da (BOOL x64_code, BYTE* ptr_to_ins, disas_address adr_of_ins);
-//Da* Da_Da (BOOL x64_code, MemoryCache *mem, disas_address adr_of_ins);
-// these ctors constructing Da depending on current OS (win32/win64)
-Da* Da_Da_auto (BYTE* ptr_to_ins, disas_address adr_of_ins);
-//Da* Da_Da (MemoryCache *mem, disas_address adr_of_ins);
+
+Da* Da_Da (TrueFalseUndefined x64_code, uint8_t* ptr_to_ins, disas_address adr_of_ins);
+Da* Da_Da_callbacks (TrueFalseUndefined x64_code, disas_address adr_of_ins, 
+        callback_read_byte* rb, callback_read_word* rw, callback_read_dword *rd, callback_read_oword *ro, 
+        void *param);
+
 void Da_ToString (Da *d, strbuf *out);
 void Da_DumpString(fds *s, Da *d);
 BOOL Da_is_MOV_EBP_ESP(Da* d);

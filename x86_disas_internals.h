@@ -15,14 +15,18 @@
 //#pragma pack(1)
 typedef struct _Da_stage1
 {
-    //unsigned from_mem_or_from_MemoryCache:1; // FALSE - from mem, TRUE - from MemoryCache
+    unsigned use_callbacks:1;
     // case 1
     uint8_t* cur_ptr;
     // case 2
-    //MemoryCache* mem;
+    callback_read_byte *read_byte_fn;
+    callback_read_word *read_word_fn;
+    callback_read_dword *read_dword_fn;
+    callback_read_oword *read_oword_fn;
+    void *callback_param;
+
     // case 1 and 2:
     disas_address cur_adr;
-    //address cur_adr;
 
     unsigned PREFIXES;
     unsigned ESCAPE_0F:1, ESCAPE_F2:1, ESCAPE_F3:1;
@@ -89,8 +93,7 @@ uint32_t Da_stage1_get_next_dword(Da_stage1 *p);
 uint64_t Da_stage1_get_next_qword (Da_stage1 *p);
 uint8_t Da_stage1_load_prefixes_escapes_opcode (Da_stage1 *p, disas_address adr_of_ins);
 void Da_stage1_dump (Da_stage1 *p, disas_address adr, int len);
-//BOOL Da_stage1_Da_stage1 (Da_stage1 *p, BOOL x64_code, BOOL buf_or_memcache, BYTE* buf, MemoryCache* mem, address adr_of_ins);
-BOOL Da_stage1_Da_stage1 (Da_stage1 *p, BOOL x64_code, BYTE* buf, disas_address adr_of_ins);
+BOOL Da_stage1_Da_stage1 (Da_stage1 *p, TrueFalseUndefined x64_code, disas_address adr_of_ins);
 
 // flags:
 

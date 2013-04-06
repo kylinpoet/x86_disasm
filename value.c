@@ -285,4 +285,3 @@ void Value_to_hex_str (s_Value *val, strbuf* out, BOOL is_asm)
             break;
     };
 };
-

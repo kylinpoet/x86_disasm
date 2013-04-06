@@ -39,27 +39,22 @@ extern Ins_definition ins_tbl[]; // in x86_tbl.cpp file
 
 uint8_t Da_stage1_get_next_byte(Da_stage1* p)
 {
-    //uint8_t rt;
-    //BOOL b;
-    //if (p->from_mem_or_from_MemoryCache==FALSE)
+    uint8_t rt;
+    BOOL b;
+    if (p->use_callbacks==FALSE)
     {
         p->cur_ptr++;
         p->cur_adr++;
         return *(p->cur_ptr-1);
     }
-#if 0    
     else
     {
         p->cur_adr++;
-        b=MC_ReadByte (p->mem, p->cur_adr-1, rt);
+        b=(*p->read_byte_fn)(p->callback_param, p->cur_adr-1, &rt);
         if (b==FALSE)
-        {
-            L (__FUNCTION__"(): can't read byte at 0x" PRI_ADR_HEX "\n", p->cur_adr-1);
-            assert(0);
-        };
+            die (__FUNCTION__"(): can't read byte at 0x" PRI_SIZE_T_HEX "\n", p->cur_adr-1);
         return rt;
-    };
-#endif    
+    };   
 };
 
 void Da_stage1_unget_byte(Da_stage1 *p)
@@ -70,62 +65,62 @@ void Da_stage1_unget_byte(Da_stage1 *p)
 
 uint16_t Da_stage1_get_next_word(Da_stage1 *p)
 {
-    //if (p->from_mem_or_from_MemoryCache==FALSE)
+    BOOL b;
+    uint16_t rt;
+
+    if (p->use_callbacks==FALSE)
     {
         p->cur_ptr+=sizeof(uint16_t);
         p->cur_adr+=sizeof(uint16_t); // will you need it?
         return *(uint16_t*)(p->cur_ptr-sizeof(uint16_t));
-    }
-#if 0   
+    } 
     else
     {
         p->cur_adr+=sizeof(uint16_t);
-        uint16_t rt;
-        BOOL b=MC_ReadWord (p->mem, p->cur_adr-sizeof(uint16_t), rt);
+        b=(*p->read_word_fn)(p->callback_param, p->cur_adr-sizeof(uint16_t), &rt);
         assert (b==TRUE);
         return rt;
     };
-#endif
 };
 
 uint32_t Da_stage1_get_next_dword(Da_stage1 *p)
 {
-    //if (p->from_mem_or_from_MemoryCache==FALSE)
+    uint32_t rt;
+    BOOL b;
+
+    if (p->use_callbacks==FALSE)
     {
         p->cur_ptr+=sizeof(uint32_t);
         p->cur_adr+=sizeof(uint32_t); // will you need it?
         return *(uint32_t*)(p->cur_ptr-sizeof(uint32_t));
     }
-#if 0
     else
     {
         p->cur_adr+=sizeof(uint32_t);
-        uint32_t rt;
-        BOOL b=MC_ReadDword (p->mem, p->cur_adr-sizeof(uint32_t), rt);
+        b=(*p->read_dword_fn)(p->callback_param, p->cur_adr-sizeof(uint32_t), &rt);
         assert (b==TRUE);
         return rt;
     };
-#endif
 };
 
 uint64_t Da_stage1_get_next_qword (Da_stage1 *p)
 {
-    //if (p->from_mem_or_from_MemoryCache==FALSE)
+    uint64_t rt;
+    BOOL b;
+
+    if (p->use_callbacks==FALSE)
     {
         p->cur_ptr+=sizeof(uint64_t);
         p->cur_adr+=sizeof(uint64_t); // will you need it?
         return *(uint64_t*)(p->cur_ptr-sizeof(uint64_t));
     }
-#if 0
     else
     {
         p->cur_adr+=sizeof(uint64_t);
-        uint64_t rt;
-        BOOL b=MC_ReadDword64 (p->mem, p->cur_adr-sizeof(uint64_t), rt);
+        b=(*p->read_oword_fn)(p->callback_param, p->cur_adr-sizeof(uint64_t), &rt);
         assert (b==TRUE);
         return rt;
-    };
-#endif   
+    };   
 };
 
 uint64_t promote_32_flags_to_64 (uint64_t f)
@@ -255,19 +250,28 @@ void Da_stage1_dump (Da_stage1 *p, disas_address adr, int len)
 };
 
 // только эта часть дизасма что-то вытягивает из памяти
-BOOL Da_stage1_Da_stage1 (Da_stage1 *p, BOOL x64_code, uint8_t* buf, disas_address adr_of_ins)
+BOOL Da_stage1_Da_stage1 (Da_stage1 *p, TrueFalseUndefined x64_code, disas_address adr_of_ins)
 {
     uint8_t opc, mask;
     BOOL PREFIX66_may_present, PREFIX66_allowed_and_present;
 
-    bzero (p, sizeof(Da_stage1));
-
     //p->from_mem_or_from_MemoryCache=buf_or_memcache;
-    /* if (p->from_mem_or_from_MemoryCache==FALSE) */ p->cur_ptr=buf;
+    /* if (p->from_mem_or_from_MemoryCache==FALSE) */ //p->cur_ptr=buf;
     //p->mem=mem;
     p->cur_adr=adr_of_ins;
 
-    p->x64=x64_code;
+    if (x64_code==Fuzzy_Undefined)
+    {
+#ifdef _WIN64
+        p->x64=TRUE;
+#else
+        p->x64=FALSE;
+#endif
+    }
+    else if (x64_code==Fuzzy_True)
+        p->x64=TRUE;
+    else
+        p->x64=FALSE;
 
     opc=Da_stage1_load_prefixes_escapes_opcode (p, adr_of_ins);
 
@@ -282,7 +286,7 @@ BOOL Da_stage1_Da_stage1 (Da_stage1 *p, BOOL x64_code, uint8_t* buf, disas_addre
         };
 
         if ((IS_SET(p->new_flags, F_REXW_PRESENT) && p->REX_W==FALSE) ||
-            (IS_SET(p->new_flags, F_REXW_ABSENT) && p->REX_W==TRUE))
+                (IS_SET(p->new_flags, F_REXW_ABSENT) && p->REX_W==TRUE))
         {
             p->tbl_p++;
             continue;
@@ -294,14 +298,14 @@ BOOL Da_stage1_Da_stage1 (Da_stage1 *p, BOOL x64_code, uint8_t* buf, disas_addre
             p->tbl_p++;
             continue;
         };
-        
+
         // need F3 prefix?
         if (IS_SET(p->new_flags, F_F3) ^ p->ESCAPE_F3)
         {
             p->tbl_p++;
             continue;
         };
-        
+
         // need F2 prefix, but we haven't one
         if (IS_SET(p->new_flags, F_F2) ^ p->ESCAPE_F2)
         {
@@ -327,8 +331,8 @@ BOOL Da_stage1_Da_stage1 (Da_stage1 *p, BOOL x64_code, uint8_t* buf, disas_addre
             continue;
         };
 
-        if ((x64_code && IS_SET (p->new_flags, F_X32_ONLY)) ||
-            ((x64_code==FALSE) && IS_SET (p->new_flags, F_X64_ONLY)))
+        if ((p->x64 && IS_SET (p->new_flags, F_X32_ONLY)) ||
+                ((p->x64==FALSE) && IS_SET (p->new_flags, F_X64_ONLY)))
         {
             p->tbl_p++;
             continue;
@@ -376,15 +380,15 @@ BOOL Da_stage1_Da_stage1 (Da_stage1 *p, BOOL x64_code, uint8_t* buf, disas_addre
 
             //printf ("MODRM=0x%02X MOD=%d REG=%d RM=%d\n", p->MODRM.as_byte, p->MODRM.s.MOD, p->MODRM.s.REG, p->MODRM.s.RM);
             if (
-                (IS_SET(p->new_flags, F_MODRM_REG_0) && p->MODRM.s.REG!=0) ||
-                (IS_SET(p->new_flags, F_MODRM_REG_1) && p->MODRM.s.REG!=1) ||
-                (IS_SET(p->new_flags, F_MODRM_REG_2) && p->MODRM.s.REG!=2) ||
-                (IS_SET(p->new_flags, F_MODRM_REG_3) && p->MODRM.s.REG!=3) ||
-                (IS_SET(p->new_flags, F_MODRM_REG_4) && p->MODRM.s.REG!=4) ||
-                (IS_SET(p->new_flags, F_MODRM_REG_5) && p->MODRM.s.REG!=5) ||
-                (IS_SET(p->new_flags, F_MODRM_REG_6) && p->MODRM.s.REG!=6) ||
-                (IS_SET(p->new_flags, F_MODRM_REG_7) && p->MODRM.s.REG!=7)
-                )
+                    (IS_SET(p->new_flags, F_MODRM_REG_0) && p->MODRM.s.REG!=0) ||
+                    (IS_SET(p->new_flags, F_MODRM_REG_1) && p->MODRM.s.REG!=1) ||
+                    (IS_SET(p->new_flags, F_MODRM_REG_2) && p->MODRM.s.REG!=2) ||
+                    (IS_SET(p->new_flags, F_MODRM_REG_3) && p->MODRM.s.REG!=3) ||
+                    (IS_SET(p->new_flags, F_MODRM_REG_4) && p->MODRM.s.REG!=4) ||
+                    (IS_SET(p->new_flags, F_MODRM_REG_5) && p->MODRM.s.REG!=5) ||
+                    (IS_SET(p->new_flags, F_MODRM_REG_6) && p->MODRM.s.REG!=6) ||
+                    (IS_SET(p->new_flags, F_MODRM_REG_7) && p->MODRM.s.REG!=7)
+               )
             {
                 Da_stage1_unget_byte(p); // push back mod/rm byte
                 p->len--;
@@ -395,15 +399,15 @@ BOOL Da_stage1_Da_stage1 (Da_stage1 *p, BOOL x64_code, uint8_t* buf, disas_addre
             };
 
             if (
-                (IS_SET(p->new_flags, F_MODRM_RM_0) && p->MODRM.s.RM!=0) ||
-                (IS_SET(p->new_flags, F_MODRM_RM_1) && p->MODRM.s.RM!=1) ||
-                (IS_SET(p->new_flags, F_MODRM_RM_2) && p->MODRM.s.RM!=2) ||
-                (IS_SET(p->new_flags, F_MODRM_RM_3) && p->MODRM.s.RM!=3) ||
-                (IS_SET(p->new_flags, F_MODRM_RM_4) && p->MODRM.s.RM!=4) ||
-                (IS_SET(p->new_flags, F_MODRM_RM_5) && p->MODRM.s.RM!=5) ||
-                (IS_SET(p->new_flags, F_MODRM_RM_6) && p->MODRM.s.RM!=6) ||
-                (IS_SET(p->new_flags, F_MODRM_RM_7) && p->MODRM.s.RM!=7)
-                )
+                    (IS_SET(p->new_flags, F_MODRM_RM_0) && p->MODRM.s.RM!=0) ||
+                    (IS_SET(p->new_flags, F_MODRM_RM_1) && p->MODRM.s.RM!=1) ||
+                    (IS_SET(p->new_flags, F_MODRM_RM_2) && p->MODRM.s.RM!=2) ||
+                    (IS_SET(p->new_flags, F_MODRM_RM_3) && p->MODRM.s.RM!=3) ||
+                    (IS_SET(p->new_flags, F_MODRM_RM_4) && p->MODRM.s.RM!=4) ||
+                    (IS_SET(p->new_flags, F_MODRM_RM_5) && p->MODRM.s.RM!=5) ||
+                    (IS_SET(p->new_flags, F_MODRM_RM_6) && p->MODRM.s.RM!=6) ||
+                    (IS_SET(p->new_flags, F_MODRM_RM_7) && p->MODRM.s.RM!=7)
+               )
             {
                 Da_stage1_unget_byte(p); // push back mod/rm byte
                 p->len--;
@@ -413,9 +417,9 @@ BOOL Da_stage1_Da_stage1 (Da_stage1 *p, BOOL x64_code, uint8_t* buf, disas_addre
             };
 
             if (
-                (IS_SET(p->new_flags, F_MODRM_MOD_IS_3) && p->MODRM.s.MOD!=3) ||
-                (IS_SET(p->new_flags, F_MODRM_MOD_IS_NOT_3) && p->MODRM.s.MOD==3)
-                )
+                    (IS_SET(p->new_flags, F_MODRM_MOD_IS_3) && p->MODRM.s.MOD!=3) ||
+                    (IS_SET(p->new_flags, F_MODRM_MOD_IS_NOT_3) && p->MODRM.s.MOD==3)
+               )
             {
                 Da_stage1_unget_byte(p); // push back mod/rm byte
                 p->len--;
@@ -520,7 +524,7 @@ BOOL Da_stage1_Da_stage1 (Da_stage1 *p, BOOL x64_code, uint8_t* buf, disas_addre
 
         if (p->new_flags & F_PTR)
         {
-            if (x64_code)
+            if (p->x64)
             {
                 p->PTR=Da_stage1_get_next_qword(p);
                 p->PTR_pos=p->cur_adr-sizeof(uint64_t);
@@ -548,22 +552,22 @@ BOOL Da_stage1_Da_stage1 (Da_stage1 *p, BOOL x64_code, uint8_t* buf, disas_addre
 
     // opcode not found
 
+    printf ("adr_of_ins=0x" PRI_SIZE_T_HEX " opcode not found, opc=%02X, p->x64=%d, prefixes=", 
+            adr_of_ins, opc, p->x64);
 
-    L ("adr_of_ins=0x" PRI_SIZE_T_HEX " opcode not found, opc=%02X, prefixes=", adr_of_ins, opc);
+    if (p->x64)   printf("X64 ");
+    if (p->REX_W) printf("REX_W ");
+    if (p->REX_R) printf("REX_R ");
+    if (p->REX_X) printf("REX_X ");
+    if (p->REX_B) printf("REX_B ");
 
-    if (p->x64)   L("X64 ");
-    if (p->REX_W) L("REX_W ");
-    if (p->REX_R) L("REX_R ");
-    if (p->REX_X) L("REX_X ");
-    if (p->REX_B) L("REX_B ");
+    if (p->ESCAPE_0F) printf("0F ");
+    if (p->ESCAPE_F2) printf("F2 ");
+    if (p->ESCAPE_F3) printf("F3 ");
+    if (p->PREFIX_66_is_present) printf("66 ");
+    if (p->PREFIX_67) printf("67 ");
 
-    if (p->ESCAPE_0F) L("0F ");
-    if (p->ESCAPE_F2) L("F2 ");
-    if (p->ESCAPE_F3) L("F3 ");
-    if (p->PREFIX_66_is_present) L("66 ");
-    if (p->PREFIX_67) L("67 ");
-
-    L ("\n");
+    printf ("\n");
 
     return FALSE;
 };
@@ -1771,57 +1775,39 @@ Da* Da_stage1_into_result (Da_stage1 *stage1, disas_address adr_of_ins)
     return rt;
 };
 
-Da* Da_Da (BOOL x64_code, uint8_t* ptr_to_ins, disas_address adr_of_ins)
+Da* Da_Da (TrueFalseUndefined x64_code, uint8_t* ptr_to_ins, disas_address adr_of_ins)
 {
     Da_stage1 stage1;
-    //if (Da_stage1_Da_stage1(&stage1, x64_code, FALSE, ptr_to_ins, NULL, adr_of_ins)==FALSE)
-    if (Da_stage1_Da_stage1(&stage1, x64_code, ptr_to_ins, adr_of_ins)==FALSE)
-        return NULL;
-    return Da_stage1_into_result (&stage1, adr_of_ins);
-};
-
-/*
-Da* Da_Da (BOOL x64_code, MemoryCache *mem, disas_address adr_of_ins)
-{
-    Da_stage1 stage1;
-    if (Da_stage1_Da_stage1(&stage1, x64_code, TRUE, NULL, mem, adr_of_ins)==FALSE)
-        return NULL;
-    return Da_stage1_into_result (&stage1, adr_of_ins);
-};
-*/
-
-Da* Da_Da_auto (uint8_t* ptr_to_ins, disas_address adr_of_ins)
-{
-    Da_stage1 stage1;
-#ifdef _WIN64
-    BOOL is_x64=TRUE;
-#else
-    BOOL is_x64=FALSE;
-#endif
-
-    //if (Da_stage1_Da_stage1(&stage1, is_x64, FALSE, ptr_to_ins, NULL, adr_of_ins)==FALSE)
-    if (Da_stage1_Da_stage1(&stage1, is_x64, ptr_to_ins, adr_of_ins)==FALSE)
-        return NULL;
     
+    bzero (&stage1, sizeof(Da_stage1));
+
+    stage1.use_callbacks=FALSE;
+    stage1.cur_ptr=ptr_to_ins;
+    
+    if (Da_stage1_Da_stage1(&stage1, x64_code, adr_of_ins)==FALSE)
+        return NULL;
     return Da_stage1_into_result (&stage1, adr_of_ins);
 };
 
-/*
-Da* Da_Da (MemoryCache *mem, disas_address adr_of_ins)
+Da* Da_Da_callbacks (TrueFalseUndefined x64_code, disas_address adr_of_ins, 
+        callback_read_byte* rb, callback_read_word* rw, callback_read_dword *rd, callback_read_oword *ro, 
+        void *param)
 {
     Da_stage1 stage1;
-#ifdef _WIN64
-    BOOL is_x64=TRUE;
-#else
-    BOOL is_x64=FALSE;
-#endif
+    
+    bzero (&stage1, sizeof(Da_stage1));
 
-    if (Da_stage1_Da_stage1(&stage1, is_x64, TRUE, NULL, mem, adr_of_ins)==FALSE)
+    stage1.use_callbacks=TRUE;
+    stage1.read_byte_fn=rb;
+    stage1.read_word_fn=rw;
+    stage1.read_dword_fn=rd;
+    stage1.read_oword_fn=ro;
+    stage1.callback_param=param;
+
+    if (Da_stage1_Da_stage1(&stage1, x64_code, adr_of_ins)==FALSE)
         return NULL;
-
     return Da_stage1_into_result (&stage1, adr_of_ins);
 };
-*/
 
 BOOL Da_op_is_reg(Da_op *op, e_X86_register reg)
 {
