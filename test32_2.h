@@ -249,4 +249,25 @@
     disas_test1(Fuzzy_False, (const unsigned char*)"\xfc", 0x300, "CLD" );
     disas_test1(Fuzzy_False, (const unsigned char*)"\xfd", 0x300, "STD");
     disas_test1(Fuzzy_False, (const unsigned char*)"\xff\x90\x90\x90\x90\x90", 0x300, "CALL [EAX-6f6f6f70h]");
+    disas_test1(Fuzzy_False, (const unsigned char*)"\x66\x0F\xFC\xE0", 0x1234, "PADDB XMM4, XMM0");
+    disas_test1(Fuzzy_False, (const unsigned char*)"\x66\x0F\x76\xC0", 0x1234, "PCMPEQD XMM0, XMM0");
+    disas_test1(Fuzzy_False, (const unsigned char*)"\x66\x8C\xC0", 0x1234, "MOV AX, ES");
+    disas_test1(Fuzzy_False, (const unsigned char*)"\x66\x8C\xE0", 0x1234, "MOV AX, FS");
+    disas_test1(Fuzzy_False, (const unsigned char*)"\x66\x8C\xE8", 0x1234, "MOV AX, GS");
+    disas_test1(Fuzzy_False, (const unsigned char*)"\x66\xA1\xD0\x02\xFE\x7F", 0x1234, "MOV AX, [7FFE02D0h]");
+    disas_test1(Fuzzy_False, (const unsigned char*)"\x0F\x03\xC1", 0x1234, "LSL EAX, ECX");
+    disas_test1(Fuzzy_False, (const unsigned char*)"\x66\x87\x45\x06", 0x1234, "XCHG AX, [EBP+6]");
+    disas_test1(Fuzzy_False, (const unsigned char*)"\x0F\x10\x02", 0x1234, "MOVUPS XMM0, [EDX]");
+    disas_test1(Fuzzy_False, (const unsigned char*)"\x66\x0F\x38\xDB\xC0", 0x1234, "AESIMC XMM0, XMM0");
+    disas_test1(Fuzzy_False, (const unsigned char*)"\xF0\x66\x0F\xB1\x0B", 0x1234, "LOCK CMPXCHG [EBX], CX");
+    disas_test1(Fuzzy_False, (const unsigned char*)"\xF3\x0F\x12\xC0", 0x1234, "MOVSLDUP XMM0, XMM0");
+    disas_test1(Fuzzy_False, (const unsigned char*)"\x66\x0F\x3A\xDF\xC0\x00", 0x1234, "AESKEYGENASSIST XMM0, XMM0, 0");
+    disas_test1(Fuzzy_False, (const unsigned char*)"\x66\x0F\x38\xDC\xC1", 0x1234, "AESENC XMM0, XMM1");
+    disas_test1(Fuzzy_False, (const unsigned char*)"\x66\x0F\x38\xDD\xC1", 0x1234, "AESENCLAST XMM0, XMM1");
+    disas_test1(Fuzzy_False, (const unsigned char*)"\x66\x0F\x28\xC1", 0x1234, "MOVAPD XMM0, XMM1");
+    disas_test1(Fuzzy_False, (const unsigned char*)"\x0F\x01\xD0", 0x1234, "XGETBV");
+    disas_test1(Fuzzy_False, (const unsigned char*)"\xD9\xCA", 0x1234, "FXCH ST0, ST2");
+    disas_test1(Fuzzy_False, (const unsigned char*)"\xDE\xF9", 0x1234, "FDIVP ST1, ST0");
+    disas_test1(Fuzzy_False, (const unsigned char*)"\xDE\xF1", 0x1234, "FDIVRP ST1, ST0");
+
 

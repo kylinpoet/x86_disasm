@@ -1,41 +1,97 @@
 #include <assert.h>
 #include "x86_disas.h"
 #include "x86_disas_internals.h"
-//#include "utils.hpp"
-//#include "win32_utils.hpp"
-//#include "memorycache.h"
-//#include "memoryerror.hpp"
-//#include "process.hpp"
-//#include "printf-utils.h"
-//#include "symbols_storage.hpp"
-//#include "utils.hpp"
 #include "dmalloc.h"
 #include "memutils.h"
 #include "bitfields.h"
 #include "strbuf.h"
 #include "fmt_utils.h"
 
-#if 0
-set<int> disas_used_tbl_entries;
+#ifdef _DEBUG
+void dump_Ins_definition(Ins_definition *d)
+{
+    printf ("%s, opc=%02X", d->name, d->opc);
+    if (IS_SET(d->flags, F_OPC2))
+        printf (", opc2=%02X", d->opc2);
+    printf ("\n");
+};
 
 void print_unused_tbl_entries()
 {
     int tbl_entries_total=0;
+    int i;
 
-    for (int i=0;;i++)
+    printf (__FUNCTION__"()\n");
+
+    for (i=0;;i++)
     {
-        if (ins_tbl[i].ins_code==I_INVALID)
-            break;
-        tbl_entries_total++;
-    };
+        Ins_definition *d=&ins_tbl[i];
 
-    for (int i=0; i<tbl_entries_total; i++)
-        if (disas_used_tbl_entries.find(i)!=disas_used_tbl_entries.end())
-            cout << i << endl;
+        if (d->ins_code==I_INVALID)
+            break;
+        if (IS_SET(d->flags, F_HIT_DURING_EXECUTION)==FALSE)
+        {
+            printf ("(untested) ");
+            dump_Ins_definition(d);
+        }
+        else
+        {
+            //printf ("(tested) ");
+            //dump_Ins_definition(d);
+        };
+    };
 };
 #endif
 
 extern Ins_definition ins_tbl[]; // in x86_tbl.cpp file
+
+static unsigned precomputed_ins_pointers[0x100]={0};
+static BOOL precomputed_ins_pointers_present=FALSE;
+
+static void precompute_ins_pointers()
+{
+    int i;
+    unsigned cur_opc;
+    Ins_definition *d;
+
+    // check ins_tbl[] monotonicity
+    for (i=0, cur_opc=0; ins_tbl[i].ins_code!=I_INVALID; i++)
+    {
+        d=&ins_tbl[i];
+        if (d->opc < cur_opc)
+        {
+            assert (!"ins_tbl[] isn't monotonic");
+        };
+
+        if (d->opc > cur_opc)
+            cur_opc=d->opc;
+    };
+
+    // precompute
+    for (i=0, cur_opc=0; ins_tbl[i].ins_code!=I_INVALID; i++)
+    {
+        d=&ins_tbl[i];
+        if (d->opc > cur_opc)
+        {
+            if (precomputed_ins_pointers[d->opc]==0)
+            {
+                precomputed_ins_pointers[d->opc]=i;
+                if (IS_SET(d->flags, F_REG32_IS_LOWEST_PART_OF_1ST_BYTE))
+                {
+                    precomputed_ins_pointers[d->opc+1]=i;
+                    precomputed_ins_pointers[d->opc+2]=i;
+                    precomputed_ins_pointers[d->opc+3]=i;
+                    precomputed_ins_pointers[d->opc+4]=i;
+                    precomputed_ins_pointers[d->opc+5]=i;
+                    precomputed_ins_pointers[d->opc+6]=i;
+                    precomputed_ins_pointers[d->opc+7]=i;
+                };
+            }
+            cur_opc=d->opc;
+        };
+    }; 
+    precomputed_ins_pointers_present=TRUE;
+};
 
 uint8_t Da_stage1_get_next_byte(Da_stage1* p)
 {
@@ -255,9 +311,8 @@ BOOL Da_stage1_Da_stage1 (Da_stage1 *p, TrueFalseUndefined x64_code, disas_addre
     uint8_t opc, mask;
     BOOL PREFIX66_may_present, PREFIX66_allowed_and_present;
 
-    //p->from_mem_or_from_MemoryCache=buf_or_memcache;
-    /* if (p->from_mem_or_from_MemoryCache==FALSE) */ //p->cur_ptr=buf;
-    //p->mem=mem;
+    //printf (__FUNCTION__"()\n");
+
     p->cur_adr=adr_of_ins;
 
     if (x64_code==Fuzzy_Undefined)
@@ -275,7 +330,12 @@ BOOL Da_stage1_Da_stage1 (Da_stage1 *p, TrueFalseUndefined x64_code, disas_addre
 
     opc=Da_stage1_load_prefixes_escapes_opcode (p, adr_of_ins);
 
-    p->tbl_p=0;
+    if (precomputed_ins_pointers_present==FALSE)
+        precompute_ins_pointers();
+
+    //p->tbl_p=0;
+    p->tbl_p=precomputed_ins_pointers[opc];
+
     while (ins_tbl[p->tbl_p].ins_code!=I_INVALID)
     {
         p->new_flags=ins_tbl[p->tbl_p].flags;
@@ -371,6 +431,9 @@ BOOL Da_stage1_Da_stage1 (Da_stage1 *p, TrueFalseUndefined x64_code, disas_addre
 
         p->ins_code=ins_tbl[p->tbl_p].ins_code;
 
+#ifdef _DEBUG
+        SET_BIT(ins_tbl[p->tbl_p].flags, F_HIT_DURING_EXECUTION);
+#endif
         // let's load MODRM
         if (p->new_flags & F_MODRM)
         {
@@ -428,11 +491,8 @@ BOOL Da_stage1_Da_stage1 (Da_stage1 *p, TrueFalseUndefined x64_code, disas_addre
                 continue;
             };
 
-            // MODRM loaded here
+            // MODRM is loaded here
 
-#ifdef _DEBUG
-            //disas_used_tbl_entries.insert (p->tbl_p);
-#endif
             p->MODRM_loaded=TRUE;
 
             if (p->PREFIX_67==FALSE)

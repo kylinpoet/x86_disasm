@@ -1,19 +1,12 @@
 #pragma once
 
-//#include "utils.hpp"
-//#include "tf.hpp"
 #include <stdint.h>
 #include "e_X86_register.h"
 #include "value.h"
-//#include "address.h"
 #include "x86_ins_codes.h"
 #include "logging.h"
-//#include "printf-utils.h"
-//#include "win32_utils.hpp"
 #include "strbuf.h"
 #include "fuzzybool.h"
-
-//using namespace std;
 
 #ifdef _WIN64
 typedef uint64_t disas_address;
@@ -28,9 +21,6 @@ typedef uint32_t disas_address;
 #define PREFIX_FS    1<<1
 #define PREFIX_SS    1<<2
 #define PREFIX_GS    1<<3
-
-//struct _MemoryCache;
-//typedef struct _MemoryCache MemoryCache;
 
 typedef enum _Da_coded_result_op_type
 {
@@ -63,7 +53,6 @@ typedef struct _Da_op
 
             disas_address value32_pos; // FIXME: here should be offset stored in uint8_t
             disas_address value64_pos; // FIXME: dangling value?
-            // shared_ptr<class Symbol> value32_sym; тут будет расширено
         } val;
         struct
         {
@@ -140,5 +129,5 @@ void Da_free (Da* d);
 const char* disas1_ins_code_to_string (Ins_codes ins_code);
 
 #ifdef _DEBUG
-//void print_unused_tbl_entries();
+void print_unused_tbl_entries();
 #endif

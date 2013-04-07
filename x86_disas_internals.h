@@ -1,21 +1,13 @@
 #pragma once
 
-//#include "utils.hpp"
-//#include "tf.hpp"
 #include "e_X86_register.h"
 #include "x86_disas.h"
-//#include "address.h"
-
-//using namespace std;
-
-//struct _MemoryCache;
-//typedef struct _MemoryCache MemoryCache;
 
 //#pragma pack(push)
 //#pragma pack(1)
 typedef struct _Da_stage1
 {
-    unsigned use_callbacks:1;
+    BOOL use_callbacks:1;
     // case 1
     uint8_t* cur_ptr;
     // case 2
@@ -97,68 +89,72 @@ BOOL Da_stage1_Da_stage1 (Da_stage1 *p, TrueFalseUndefined x64_code, disas_addre
 
 // flags:
 
-#define F_MODRM 1<<0
-#define F_IMM8  1<<1
-#define F_IMM16 1<<2
-#define F_IMM32 1<<3
+#define F_MODRM 1i64<<0
+#define F_IMM8  1i64<<1
+#define F_IMM16 1i64<<2
+#define F_IMM32 1i64<<3
 
-#define F_PREFIX66_ALLOWED 1<<4
-#define F_PREFIX66_IS_PART_OF_OPCODE 1<<5
-#define F_PREFIX66_APPLIED_TO_OP1_ONLY 1<<6
+#define F_PREFIX66_ALLOWED 1i64<<4
+#define F_PREFIX66_IS_PART_OF_OPCODE 1i64<<5
+#define F_PREFIX66_APPLIED_TO_OP1_ONLY 1i64<<6
 
-#define F_REG32_IS_LOWEST_PART_OF_1ST_BYTE 1<<7
+#define F_REG32_IS_LOWEST_PART_OF_1ST_BYTE 1i64<<7
 
-#define F_REG64_IS_LOWEST_PART_OF_1ST_BYTE 1<<9
+#define F_REG64_IS_LOWEST_PART_OF_1ST_BYTE 1i64<<9
 
 // including promoting F_IMM32 to F_IMM64 ... (кажется)
-#define F_REXW_PROMOTE_ALL_32_OPS_TO_64 1<<11
+#define F_REXW_PROMOTE_ALL_32_OPS_TO_64 1i64<<11
 
-#define F_X32_ONLY 1<<12
-#define F_X64_ONLY 1<<13
+#define F_X32_ONLY 1i64<<12
+#define F_X64_ONLY 1i64<<13
 
-#define F_IMM64 1<<14
+#define F_IMM64 1i64<<14
 
-#define F_REXW_ABSENT 1<<16
-#define F_REXW_PRESENT 1<<17
+#define F_REXW_ABSENT 1i64<<16
+#define F_REXW_PRESENT 1i64<<17
 
-#define F_X64_PROMOTE_OP1_32_TO_64 1<<18
-#define F_REXW_SIGN_EXTEND_OP2_32_TO_64 1<<19
-#define F_REXW_PROMOTE_OP1_32_TO_64 1<<20
+#define F_X64_PROMOTE_OP1_32_TO_64 1i64<<18
+#define F_REXW_SIGN_EXTEND_OP2_32_TO_64 1i64<<19
+#define F_REXW_PROMOTE_OP1_32_TO_64 1i64<<20
 
-#define F_WHEN_MOD3_TREAT_RM_AS_STx 1<<21
+#define F_WHEN_MOD3_TREAT_RM_AS_STx 1i64<<21
 
-// 0F is part of opcode
-#define F_0F 1<<22
+// 0F is part of opcode?
+#define F_0F 1i64<<22
 
-#define F_MODRM_REG_0 1<<23
-#define F_MODRM_REG_1 1<<24
-#define F_MODRM_REG_2 1<<25
-#define F_MODRM_REG_3 1<<26
-#define F_MODRM_REG_4 1<<27
-#define F_MODRM_REG_5 1<<28
-#define F_MODRM_REG_6 1<<29
-#define F_MODRM_REG_7 1<<30
+#define F_MODRM_REG_0 1i64<<23
+#define F_MODRM_REG_1 1i64<<24
+#define F_MODRM_REG_2 1i64<<25
+#define F_MODRM_REG_3 1i64<<26
+#define F_MODRM_REG_4 1i64<<27
+#define F_MODRM_REG_5 1i64<<28
+#define F_MODRM_REG_6 1i64<<29
+#define F_MODRM_REG_7 1i64<<30
 
-#define F_MODRM_RM_2           0x80000000
-#define F_MODRM_RM_3          0x100000000
-#define F_MODRM_RM_0          0x200000000
+#define F_MODRM_RM_2  1i64<<31
+#define F_MODRM_RM_3  1i64<<32
+#define F_MODRM_RM_0  1i64<<33
 
-// F3 is part of opcode (it was REP instruction also)
-#define F_F3                  0x400000000
+// F3 is part of opcode? (it was REP instruction also)
+#define F_F3          1i64<<34
 
-// F2 is part of opcode (it was REPNE instruction also)
-#define F_F2                 0x1000000000
+// F2 is part of opcode? (it was REPNE instruction also)
+#define F_F2          1i64<<35
 
-#define F_MODRM_MOD_IS_3     0x2000000000
-#define F_MODRM_MOD_IS_NOT_3 0x4000000000
-#define F_MODRM_RM_1         0x8000000000
-#define F_MODRM_RM_5        0x10000000000
-#define F_MODRM_RM_4        0x20000000000
-#define F_MODRM_RM_6        0x40000000000
-#define F_MODRM_RM_7        0x80000000000
+#define F_MODRM_MOD_IS_3     1i64<<36
+#define F_MODRM_MOD_IS_NOT_3 1i64<<37
+#define F_MODRM_RM_1         1i64<<38
+#define F_MODRM_RM_5         1i64<<39
+#define F_MODRM_RM_4       1i64<<40
+#define F_MODRM_RM_6       1i64<<41
+#define F_MODRM_RM_7       1i64<<42
 
-#define F_PTR              0x100000000000
-#define F_OPC2             0x200000000000
+#define F_PTR              1i64<<43
+#define F_OPC2             1i64<<44
+
+// the flag is to be set in table in DEBUG build if disasm used the entry at least once
+// this information will be used in print_unused_tbl_entries() while testing
+#define F_HIT_DURING_EXECUTION  1i64<<45
 
 typedef enum _op_source
 {
