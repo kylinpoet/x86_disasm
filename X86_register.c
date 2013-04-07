@@ -1,8 +1,8 @@
-#include "e_X86_register.h"
+#include "X86_register.h"
 #include <stdint.h>
 #include <assert.h>
 
-BOOL e_X86_register_is_flag (e_X86_register r)
+BOOL X86_register_is_flag (X86_register r)
 {
     switch (r)
     {
@@ -20,7 +20,7 @@ BOOL e_X86_register_is_flag (e_X86_register r)
     };
 };
 
-BOOL e_X86_register_is_STx (e_X86_register r)
+BOOL X86_register_is_STx (X86_register r)
 {
     switch (r)
     {
@@ -39,22 +39,22 @@ BOOL e_X86_register_is_STx (e_X86_register r)
 };
 
 /*
-BOOL e_X86_register_from_string (const char* s, e_X86_register *out)
+BOOL X86_register_from_string (const char* s, X86_register *out)
 {
-    *out=e_X86_register_from_string (s);
+    *out=X86_register_from_string (s);
     if (*out==R_ABSENT)
         return FALSE;
     return TRUE;
 };
 */
 
-e_X86_register e_X86_register_from_string (const char* s)
+X86_register X86_register_from_string (const char* s)
 {
 #if 0
     L ("%s:%d s=%s, this=0x%x\n", __FUNCTION__, __LINE__, s, this);
 #endif
 
-    e_X86_register r=R_ABSENT;
+    X86_register r=R_ABSENT;
 
     if (_stricmp (s, "eax")==0) r=R_EAX;
     if (_stricmp (s, "ebx")==0) r=R_EBX;
@@ -105,7 +105,7 @@ e_X86_register e_X86_register_from_string (const char* s)
     return r;
 };
 
-const char* e_X86_register_ToString (e_X86_register r)
+const char* X86_register_ToString (X86_register r)
 {
 #if 0
     L ("%s:%d this=0x%x\n", __FUNCTION__, __LINE__, this);
@@ -264,29 +264,29 @@ const char* e_X86_register_ToString (e_X86_register r)
     return ""; // make compiler happy
 };
 
-BOOL e_X86_register_is_ExX_ExI(e_X86_register r)
+BOOL X86_register_is_ExX_ExI(X86_register r)
 {
     return (r==R_EAX || r==R_EBX || r==R_ECX || r==R_EDX || r==R_ESI || r==R_EDI || r==R_EBP || r==R_ESP);
 };
-BOOL e_X86_register_is_xX_xI(e_X86_register r)
+BOOL X86_register_is_xX_xI(X86_register r)
 {
     return (r==R_AX || r==R_BX || r==R_CX || r==R_DX || r==R_SI || r==R_DI || r==R_BP || r==R_SP);
 };
-BOOL e_X86_register_is_xH(e_X86_register r)
+BOOL X86_register_is_xH(X86_register r)
 {
     return (r==R_AH || r==R_BH || r==R_CH || r==R_DH);
 };
-BOOL e_X86_register_is_xL(e_X86_register r)
+BOOL X86_register_is_xL(X86_register r)
 {
     return (r==R_AL || r==R_BL || r==R_CL || r==R_DL);
 };
 
-BOOL e_X86_register_is_segment(e_X86_register r)
+BOOL X86_register_is_segment(X86_register r)
 {
     return (r==R_CS || r==R_DS || r==R_SS || r==R_ES || r==R_FS || r==R_GS);
 };
 
-e_X86_register e_X86_register_get_32bit_part_of(e_X86_register r)
+X86_register X86_register_get_32bit_part_of(X86_register r)
 {
     switch (r)
     {
@@ -306,7 +306,7 @@ e_X86_register e_X86_register_get_32bit_part_of(e_X86_register r)
     return R_EAX; // make compiler happy
 };
 
-BOOL e_X86_register_is_XMMx(e_X86_register r)
+BOOL X86_register_is_XMMx(X86_register r)
 {
     switch (r)
     {

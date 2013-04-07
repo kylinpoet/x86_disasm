@@ -3,7 +3,7 @@
 #include "value.h"
 #include <windows.h>
 
-typedef enum e_X86_register_t
+typedef enum X86_register_t
 {
     R_ABSENT=0, // should always be zero!
 
@@ -128,18 +128,18 @@ typedef enum e_X86_register_t
     R_CF,
     R_DF,
     R_TF
-} e_X86_register;
+} X86_register;
 
-e_X86_register e_X86_register_from_string (const char* s);
-//BOOL e_X86_register_from_string (const char* s, e_X86_register *out);
-BOOL e_X86_register_is_flag (e_X86_register r);
-BOOL e_X86_register_is_STx (e_X86_register r);
-const char* e_X86_register_ToString (e_X86_register r);
+X86_register X86_register_from_string (const char* s);
+//BOOL X86_register_from_string (const char* s, X86_register *out);
+BOOL X86_register_is_flag (X86_register r);
+BOOL X86_register_is_STx (X86_register r);
+const char* X86_register_ToString (X86_register r);
 
-BOOL e_X86_register_is_ExX_ExI(e_X86_register r);
-BOOL e_X86_register_is_xX_xI(e_X86_register r);
-BOOL e_X86_register_is_xH(e_X86_register r);
-BOOL e_X86_register_is_xL(e_X86_register r);
-BOOL e_X86_register_is_segment(e_X86_register r);
-BOOL e_X86_register_is_XMMx(e_X86_register r);
-e_X86_register e_X86_register_get_32bit_part_of(e_X86_register r);
+BOOL X86_register_is_ExX_ExI(X86_register r);
+BOOL X86_register_is_xX_xI(X86_register r);
+BOOL X86_register_is_xH(X86_register r);
+BOOL X86_register_is_xL(X86_register r);
+BOOL X86_register_is_segment(X86_register r);
+BOOL X86_register_is_XMMx(X86_register r);
+X86_register X86_register_get_32bit_part_of(X86_register r);

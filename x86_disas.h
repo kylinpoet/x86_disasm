@@ -1,7 +1,7 @@
 #pragma once
 
 #include <stdint.h>
-#include "e_X86_register.h"
+#include "X86_register.h"
 #include "value.h"
 #include "x86_ins_codes.h"
 #include "logging.h"
@@ -45,7 +45,7 @@ typedef struct _Da_op
     union
     {
         // type=DA_OP_TYPE_REGISTER
-        e_X86_register reg:8;
+        X86_register reg:8;
         struct
         {
             // type=DA_OP_TYPE_VALUE
@@ -57,8 +57,8 @@ typedef struct _Da_op
         struct
         {
             // type=DA_OP_TYPE_VALUE_IN_MEMORY
-            e_X86_register adr_base;
-            e_X86_register adr_index;
+            X86_register adr_base;
+            X86_register adr_index;
             unsigned adr_index_mult;
             uint8_t adr_disp_width_in_bits;
             int64_t adr_disp; // signed
@@ -77,7 +77,7 @@ typedef struct _Da_op
 
 // functions to work with Da_op struct
 BOOL Da_op_equals(Da_op *op1, Da_op *op2);
-BOOL Da_op_is_reg(Da_op *op, e_X86_register reg);
+BOOL Da_op_is_reg(Da_op *op, X86_register reg);
 void Da_op_ToString (Da_op* op, strbuf* out);
 void Da_op_DumpString (fds* s, Da_op* op);
 BOOL Da_op_is_adr_disp_negative(Da_op *op);

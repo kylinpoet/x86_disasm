@@ -1,6 +1,6 @@
 #pragma once
 
-#include "e_X86_register.h"
+#include "X86_register.h"
 #include "x86_disas.h"
 
 //#pragma pack(push)

@@ -632,7 +632,7 @@ BOOL Da_stage1_Da_stage1 (Da_stage1 *p, TrueFalseUndefined x64_code, disas_addre
     return FALSE;
 };
 
-static e_X86_register get_x64_reg (int i)
+static X86_register get_x64_reg (int i)
 {
     switch (i)
     {
@@ -658,7 +658,7 @@ static e_X86_register get_x64_reg (int i)
     };
 };
 
-static e_X86_register get_XMM_reg (int i)
+static X86_register get_XMM_reg (int i)
 {
     switch (i)
     {
@@ -682,7 +682,7 @@ static e_X86_register get_XMM_reg (int i)
     };
 };
 
-static e_X86_register get_x32_reg (int i)
+static X86_register get_x32_reg (int i)
 {
     switch (i)
     {
@@ -708,7 +708,7 @@ static e_X86_register get_x32_reg (int i)
     };
 };
 
-static e_X86_register get_x16_reg (int i)
+static X86_register get_x16_reg (int i)
 {
     switch (i)
     {
@@ -734,7 +734,7 @@ static e_X86_register get_x16_reg (int i)
     }
 };
 
-static e_X86_register get_STx_reg (int i)
+static X86_register get_STx_reg (int i)
 {
     switch (i)
     {
@@ -752,7 +752,7 @@ static e_X86_register get_STx_reg (int i)
     }
 };
 
-static e_X86_register get_8bit_reg (int i, BOOL replace_xH_to_xPL_and_xIL)
+static X86_register get_8bit_reg (int i, BOOL replace_xH_to_xPL_and_xIL)
 {
     if (replace_xH_to_xPL_and_xIL)
     {
@@ -790,7 +790,7 @@ static e_X86_register get_8bit_reg (int i, BOOL replace_xH_to_xPL_and_xIL)
 };
 
 static void decode_SIB (Da_stage1 *stage1,
-                        e_X86_register * adr_base, e_X86_register * adr_index, unsigned * adr_index_mult, int64_t * adr_disp, uint8_t * adr_disp_width_in_bits, disas_address *adr_disp_pos)
+                        X86_register * adr_base, X86_register * adr_index, unsigned * adr_index_mult, int64_t * adr_disp, uint8_t * adr_disp_width_in_bits, disas_address *adr_disp_pos)
 {
     int scale_i=1;
 
@@ -1869,7 +1869,7 @@ Da* Da_Da_callbacks (TrueFalseUndefined x64_code, disas_address adr_of_ins,
     return Da_stage1_into_result (&stage1, adr_of_ins);
 };
 
-BOOL Da_op_is_reg(Da_op *op, e_X86_register reg)
+BOOL Da_op_is_reg(Da_op *op, X86_register reg)
 {
     return op->type==DA_OP_TYPE_REGISTER && op->u.reg==reg;
 };
@@ -1913,7 +1913,7 @@ void Da_op_ToString (Da_op* op, strbuf* out)
     switch (op->type)
     {
         case DA_OP_TYPE_REGISTER:
-            strbuf_addstr(out, e_X86_register_ToString (op->u.reg));
+            strbuf_addstr(out, X86_register_ToString (op->u.reg));
             break;
 
         case DA_OP_TYPE_VALUE:
@@ -1926,7 +1926,7 @@ void Da_op_ToString (Da_op* op, strbuf* out)
 
             if (op->u.adr.adr_base != R_ABSENT)
             {
-                strbuf_addstr (out, e_X86_register_ToString (op->u.adr.adr_base));
+                strbuf_addstr (out, X86_register_ToString (op->u.adr.adr_base));
                 something_added=TRUE;
             };
 
@@ -1936,14 +1936,14 @@ void Da_op_ToString (Da_op* op, strbuf* out)
                 {
                     if (something_added)
                         strbuf_addc(out, '+');
-                    strbuf_addstr(out, e_X86_register_ToString (op->u.adr.adr_index));
+                    strbuf_addstr(out, X86_register_ToString (op->u.adr.adr_index));
                     something_added=TRUE;
                 }
                 else
                 {
                     if (something_added)
                         strbuf_addc(out, '+');
-                    strbuf_addstr (out, e_X86_register_ToString (op->u.adr.adr_index));
+                    strbuf_addstr (out, X86_register_ToString (op->u.adr.adr_index));
                     strbuf_addf (out, "*%d", op->u.adr.adr_index_mult);
                     something_added=TRUE;
                 };
