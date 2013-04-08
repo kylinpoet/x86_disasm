@@ -106,7 +106,7 @@ uint8_t Da_stage1_get_next_byte(Da_stage1* p)
     else
     {
         p->cur_adr++;
-        b=(*p->read_byte_fn)(p->callback_param, p->cur_adr-1, &rt);
+        b=p->read_byte_fn(p->callback_param, p->cur_adr-1, &rt);
         if (b==FALSE)
             die (__FUNCTION__"(): can't read byte at 0x" PRI_SIZE_T_HEX "\n", p->cur_adr-1);
         return rt;
@@ -133,7 +133,7 @@ uint16_t Da_stage1_get_next_word(Da_stage1 *p)
     else
     {
         p->cur_adr+=sizeof(uint16_t);
-        b=(*p->read_word_fn)(p->callback_param, p->cur_adr-sizeof(uint16_t), &rt);
+        b=p->read_word_fn(p->callback_param, p->cur_adr-sizeof(uint16_t), &rt);
         assert (b==TRUE);
         return rt;
     };
@@ -153,7 +153,7 @@ uint32_t Da_stage1_get_next_dword(Da_stage1 *p)
     else
     {
         p->cur_adr+=sizeof(uint32_t);
-        b=(*p->read_dword_fn)(p->callback_param, p->cur_adr-sizeof(uint32_t), &rt);
+        b=p->read_dword_fn(p->callback_param, p->cur_adr-sizeof(uint32_t), &rt);
         assert (b==TRUE);
         return rt;
     };
@@ -173,7 +173,7 @@ uint64_t Da_stage1_get_next_qword (Da_stage1 *p)
     else
     {
         p->cur_adr+=sizeof(uint64_t);
-        b=(*p->read_oword_fn)(p->callback_param, p->cur_adr-sizeof(uint64_t), &rt);
+        b=p->read_oword_fn(p->callback_param, p->cur_adr-sizeof(uint64_t), &rt);
         assert (b==TRUE);
         return rt;
     };   
@@ -1850,7 +1850,7 @@ Da* Da_Da (TrueFalseUndefined x64_code, uint8_t* ptr_to_ins, disas_address adr_o
 };
 
 Da* Da_Da_callbacks (TrueFalseUndefined x64_code, disas_address adr_of_ins, 
-        callback_read_byte* rb, callback_read_word* rw, callback_read_dword *rd, callback_read_oword *ro, 
+        callback_read_byte rb, callback_read_word rw, callback_read_dword rd, callback_read_oword ro, 
         void *param)
 {
     Da_stage1 stage1;

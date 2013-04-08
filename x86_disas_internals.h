@@ -11,10 +11,10 @@ typedef struct _Da_stage1
     // case 1
     uint8_t* cur_ptr;
     // case 2
-    callback_read_byte *read_byte_fn;
-    callback_read_word *read_word_fn;
-    callback_read_dword *read_dword_fn;
-    callback_read_oword *read_oword_fn;
+    callback_read_byte read_byte_fn;
+    callback_read_word read_word_fn;
+    callback_read_dword read_dword_fn;
+    callback_read_oword read_oword_fn;
     void *callback_param;
 
     // case 1 and 2:

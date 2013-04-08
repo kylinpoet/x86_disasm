@@ -3,6 +3,10 @@
 #include "value.h"
 #include <windows.h>
 
+#ifdef  __cplusplus
+extern "C" {
+#endif
+
 typedef enum X86_register_t
 {
     R_ABSENT=0, // should always be zero!
@@ -143,3 +147,7 @@ BOOL X86_register_is_xL(X86_register r);
 BOOL X86_register_is_segment(X86_register r);
 BOOL X86_register_is_XMMx(X86_register r);
 X86_register X86_register_get_32bit_part_of(X86_register r);
+
+#ifdef  __cplusplus
+}
+#endif

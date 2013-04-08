@@ -8,6 +8,10 @@
 #include "strbuf.h"
 #include "fuzzybool.h"
 
+#ifdef  __cplusplus
+extern "C" {
+#endif
+
 #ifdef _WIN64
 typedef uint64_t disas_address;
 #else
@@ -107,7 +111,7 @@ typedef BOOL (*callback_read_oword)(void* param, disas_address adr, uint64_t* ou
 
 Da* Da_Da (TrueFalseUndefined x64_code, uint8_t* ptr_to_ins, disas_address adr_of_ins);
 Da* Da_Da_callbacks (TrueFalseUndefined x64_code, disas_address adr_of_ins, 
-        callback_read_byte* rb, callback_read_word* rw, callback_read_dword *rd, callback_read_oword *ro, 
+        callback_read_byte rb, callback_read_word rw, callback_read_dword rd, callback_read_oword ro, 
         void *param);
 
 void Da_ToString (Da *d, strbuf *out);
@@ -130,4 +134,8 @@ const char* disas1_ins_code_to_string (Ins_codes ins_code);
 
 #ifdef _DEBUG
 void print_unused_tbl_entries();
+#endif
+
+#ifdef  __cplusplus
+}
 #endif
