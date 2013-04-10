@@ -889,7 +889,7 @@ static void decode_SIB (Da_stage1 *stage1,
 
 static Da_op *create_Da_op (enum op_source op, Da_stage1 *stage1, disas_address ins_adr, unsigned ins_len)
 {
-    Da_op* rt=(Da_op*)DCALLOC(sizeof(Da_op), "Da_op");
+    Da_op* rt=DCALLOC(Da_op, 1, "Da_op");
 
     rt->u.adr.adr_index_mult=1; // default value
 
@@ -1749,7 +1749,7 @@ Da* Da_stage1_into_result (Da_stage1 *stage1, disas_address adr_of_ins)
     uint64_t fl;
     op_source new_op1, new_op2, new_op3;
 
-    rt=(Da*)DCALLOC(sizeof(Da), "Da");
+    rt=DCALLOC(Da, 1, "Da");
     rt->ins_code=stage1->ins_code;
     rt->len=stage1->len;
     rt->prefix_codes=stage1->PREFIXES;
