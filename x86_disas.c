@@ -2065,7 +2065,7 @@ void Da_DumpString(fds* s, Da *d)
     strbuf t;
     strbuf_init(&t, 10);
     Da_ToString(d, &t);
-    puts (t.buf);
+    L_fds (s, "%s", t.buf);
     strbuf_deinit(&t);
 };
 

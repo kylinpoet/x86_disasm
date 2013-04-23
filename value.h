@@ -11,6 +11,8 @@
 extern "C" {
 #endif
 
+// here should be for both 32 and 64-bit: type + (reg|ptr) (~5 and ~9 bytes)
+
 union value_u
 {
     uint64_t v;
