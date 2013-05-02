@@ -2,7 +2,7 @@
 #include <stdint.h>
 #include <assert.h>
 
-BOOL X86_register_is_flag (X86_register r)
+bool X86_register_is_flag (X86_register r)
 {
     switch (r)
     {
@@ -14,13 +14,13 @@ BOOL X86_register_is_flag (X86_register r)
     case R_CF:
     case R_DF:
     case R_TF:
-        return TRUE;
+        return true;
     default:
-        return FALSE;
+        return false;
     };
 };
 
-BOOL X86_register_is_STx (X86_register r)
+bool X86_register_is_STx (X86_register r)
 {
     switch (r)
     {
@@ -32,19 +32,19 @@ BOOL X86_register_is_STx (X86_register r)
     case R_ST5:
     case R_ST6:
     case R_ST7:
-        return TRUE;
+        return true;
     default:
-        return FALSE;
+        return false;
     };
 };
 
 /*
-BOOL X86_register_from_string (const char* s, X86_register *out)
+bool X86_register_from_string (const char* s, X86_register *out)
 {
     *out=X86_register_from_string (s);
     if (*out==R_ABSENT)
-        return FALSE;
-    return TRUE;
+        return false;
+    return true;
 };
 */
 
@@ -264,24 +264,24 @@ const char* X86_register_ToString (X86_register r)
     return ""; // make compiler happy
 };
 
-BOOL X86_register_is_ExX_ExI(X86_register r)
+bool X86_register_is_ExX_ExI(X86_register r)
 {
     return (r==R_EAX || r==R_EBX || r==R_ECX || r==R_EDX || r==R_ESI || r==R_EDI || r==R_EBP || r==R_ESP);
 };
-BOOL X86_register_is_xX_xI(X86_register r)
+bool X86_register_is_xX_xI(X86_register r)
 {
     return (r==R_AX || r==R_BX || r==R_CX || r==R_DX || r==R_SI || r==R_DI || r==R_BP || r==R_SP);
 };
-BOOL X86_register_is_xH(X86_register r)
+bool X86_register_is_xH(X86_register r)
 {
     return (r==R_AH || r==R_BH || r==R_CH || r==R_DH);
 };
-BOOL X86_register_is_xL(X86_register r)
+bool X86_register_is_xL(X86_register r)
 {
     return (r==R_AL || r==R_BL || r==R_CL || r==R_DL);
 };
 
-BOOL X86_register_is_segment(X86_register r)
+bool X86_register_is_segment(X86_register r)
 {
     return (r==R_CS || r==R_DS || r==R_SS || r==R_ES || r==R_FS || r==R_GS);
 };
@@ -306,7 +306,7 @@ X86_register X86_register_get_32bit_part_of(X86_register r)
     return R_EAX; // make compiler happy
 };
 
-BOOL X86_register_is_XMMx(X86_register r)
+bool X86_register_is_XMMx(X86_register r)
 {
     switch (r)
     {
@@ -326,8 +326,8 @@ BOOL X86_register_is_XMMx(X86_register r)
     case R_XMM13:
     case R_XMM14:
     case R_XMM15:
-        return TRUE;
+        return true;
     default:
-        return FALSE;
+        return false;
     };
 };

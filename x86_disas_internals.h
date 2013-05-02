@@ -1,5 +1,7 @@
 #pragma once
 
+#include "datatypes.h"
+
 #include "X86_register.h"
 #include "x86_disas.h"
 
@@ -7,7 +9,7 @@
 //#pragma pack(1)
 typedef struct _Da_stage1
 {
-    BOOL use_callbacks:1;
+    bool use_callbacks:1;
     // case 1
     uint8_t* cur_ptr;
     // case 2
@@ -46,7 +48,7 @@ typedef struct _Da_stage1
         } s;
         uint8_t as_byte;
     } MODRM;
-    BOOL MODRM_loaded;
+    bool MODRM_loaded;
 
     // SIB
     union
@@ -59,7 +61,7 @@ typedef struct _Da_stage1
         } s;
         uint8_t as_byte;
     } SIB;
-    BOOL SIB_loaded;
+    bool SIB_loaded;
 
     // DISP8/16/32
     int8_t DISP8; unsigned DISP8_loaded:1;
@@ -85,76 +87,76 @@ uint32_t Da_stage1_get_next_dword(Da_stage1 *p);
 uint64_t Da_stage1_get_next_qword (Da_stage1 *p);
 uint8_t Da_stage1_load_prefixes_escapes_opcode (Da_stage1 *p, disas_address adr_of_ins);
 void Da_stage1_dump (Da_stage1 *p, disas_address adr, int len);
-BOOL Da_stage1_Da_stage1 (Da_stage1 *p, TrueFalseUndefined x64_code, disas_address adr_of_ins);
+bool Da_stage1_Da_stage1 (Da_stage1 *p, TrueFalseUndefined x64_code, disas_address adr_of_ins);
 
 // flags:
 
-#define F_MODRM 1i64<<0
-#define F_IMM8  1i64<<1
-#define F_IMM16 1i64<<2
-#define F_IMM32 1i64<<3
+#define F_MODRM OCTABYTE_1<<0
+#define F_IMM8  OCTABYTE_1<<1
+#define F_IMM16 OCTABYTE_1<<2
+#define F_IMM32 OCTABYTE_1<<3
 
-#define F_PREFIX66_ALLOWED 1i64<<4
-#define F_PREFIX66_IS_PART_OF_OPCODE 1i64<<5
-#define F_PREFIX66_APPLIED_TO_OP1_ONLY 1i64<<6
+#define F_PREFIX66_ALLOWED OCTABYTE_1<<4
+#define F_PREFIX66_IS_PART_OF_OPCODE OCTABYTE_1<<5
+#define F_PREFIX66_APPLIED_TO_OP1_ONLY OCTABYTE_1<<6
 
-#define F_REG32_IS_LOWEST_PART_OF_1ST_BYTE 1i64<<7
+#define F_REG32_IS_LOWEST_PART_OF_1ST_BYTE OCTABYTE_1<<7
 
-#define F_REG64_IS_LOWEST_PART_OF_1ST_BYTE 1i64<<9
+#define F_REG64_IS_LOWEST_PART_OF_1ST_BYTE OCTABYTE_1<<9
 
 // including promoting F_IMM32 to F_IMM64 ... (кажется)
-#define F_REXW_PROMOTE_ALL_32_OPS_TO_64 1i64<<11
+#define F_REXW_PROMOTE_ALL_32_OPS_TO_64 OCTABYTE_1<<11
 
-#define F_X32_ONLY 1i64<<12
-#define F_X64_ONLY 1i64<<13
+#define F_X32_ONLY OCTABYTE_1<<12
+#define F_X64_ONLY OCTABYTE_1<<13
 
-#define F_IMM64 1i64<<14
+#define F_IMM64 OCTABYTE_1<<14
 
-#define F_REXW_ABSENT 1i64<<16
-#define F_REXW_PRESENT 1i64<<17
+#define F_REXW_ABSENT OCTABYTE_1<<16
+#define F_REXW_PRESENT OCTABYTE_1<<17
 
-#define F_X64_PROMOTE_OP1_32_TO_64 1i64<<18
-#define F_REXW_SIGN_EXTEND_OP2_32_TO_64 1i64<<19
-#define F_REXW_PROMOTE_OP1_32_TO_64 1i64<<20
+#define F_X64_PROMOTE_OP1_32_TO_64 OCTABYTE_1<<18
+#define F_REXW_SIGN_EXTEND_OP2_32_TO_64 OCTABYTE_1<<19
+#define F_REXW_PROMOTE_OP1_32_TO_64 OCTABYTE_1<<20
 
-#define F_WHEN_MOD3_TREAT_RM_AS_STx 1i64<<21
+#define F_WHEN_MOD3_TREAT_RM_AS_STx OCTABYTE_1<<21
 
 // 0F is part of opcode?
-#define F_0F 1i64<<22
+#define F_0F OCTABYTE_1<<22
 
-#define F_MODRM_REG_0 1i64<<23
-#define F_MODRM_REG_1 1i64<<24
-#define F_MODRM_REG_2 1i64<<25
-#define F_MODRM_REG_3 1i64<<26
-#define F_MODRM_REG_4 1i64<<27
-#define F_MODRM_REG_5 1i64<<28
-#define F_MODRM_REG_6 1i64<<29
-#define F_MODRM_REG_7 1i64<<30
+#define F_MODRM_REG_0 OCTABYTE_1<<23
+#define F_MODRM_REG_1 OCTABYTE_1<<24
+#define F_MODRM_REG_2 OCTABYTE_1<<25
+#define F_MODRM_REG_3 OCTABYTE_1<<26
+#define F_MODRM_REG_4 OCTABYTE_1<<27
+#define F_MODRM_REG_5 OCTABYTE_1<<28
+#define F_MODRM_REG_6 OCTABYTE_1<<29
+#define F_MODRM_REG_7 OCTABYTE_1<<30
 
-#define F_MODRM_RM_2  1i64<<31
-#define F_MODRM_RM_3  1i64<<32
-#define F_MODRM_RM_0  1i64<<33
+#define F_MODRM_RM_2  OCTABYTE_1<<31
+#define F_MODRM_RM_3  OCTABYTE_1<<32
+#define F_MODRM_RM_0  OCTABYTE_1<<33
 
 // F3 is part of opcode? (it was REP instruction also)
-#define F_F3          1i64<<34
+#define F_F3          OCTABYTE_1<<34
 
 // F2 is part of opcode? (it was REPNE instruction also)
-#define F_F2          1i64<<35
+#define F_F2          OCTABYTE_1<<35
 
-#define F_MODRM_MOD_IS_3     1i64<<36
-#define F_MODRM_MOD_IS_NOT_3 1i64<<37
-#define F_MODRM_RM_1         1i64<<38
-#define F_MODRM_RM_5         1i64<<39
-#define F_MODRM_RM_4       1i64<<40
-#define F_MODRM_RM_6       1i64<<41
-#define F_MODRM_RM_7       1i64<<42
+#define F_MODRM_MOD_IS_3     OCTABYTE_1<<36
+#define F_MODRM_MOD_IS_NOT_3 OCTABYTE_1<<37
+#define F_MODRM_RM_1         OCTABYTE_1<<38
+#define F_MODRM_RM_5         OCTABYTE_1<<39
+#define F_MODRM_RM_4       OCTABYTE_1<<40
+#define F_MODRM_RM_6       OCTABYTE_1<<41
+#define F_MODRM_RM_7       OCTABYTE_1<<42
 
-#define F_PTR              1i64<<43
-#define F_OPC2             1i64<<44
+#define F_PTR              OCTABYTE_1<<43
+#define F_OPC2             OCTABYTE_1<<44
 
 // the flag is to be set in table in DEBUG build if disasm used the entry at least once
 // this information will be used in print_unused_tbl_entries() while testing
-#define F_HIT_DURING_EXECUTION  1i64<<45
+#define F_HIT_DURING_EXECUTION  OCTABYTE_1<<45
 
 typedef enum _op_source
 {
@@ -274,14 +276,16 @@ typedef struct _Ins_definition
     uint8_t opc;
     uint8_t opc2;
     uint64_t flags;
-    enum op_source op1; // source of first operand
-    enum op_source op2; // second
-    enum op_source op3; // third
+    op_source op1; // source of first operand
+    op_source op2; // second
+    op_source op3; // third
 
     const char *name;
 
     Ins_codes ins_code;
 } Ins_definition;
 
-Ins_definition ins_tbl[];
+//Ins_definition ins_tbl[];
+//extern Ins_definition ins_tbl[];
+
 

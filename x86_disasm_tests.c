@@ -1,4 +1,6 @@
 #include <assert.h>
+#include "stuff.h"
+
 #include "x86_disas.h"
 
 #include "XOR_tests.h"
@@ -12,17 +14,18 @@ void disas_test1(TrueFalseUndefined x64, const unsigned char* code, disas_addres
     //printf (__FUNCTION__"(x64=%d) begin\n", x64);
     if (d==NULL)
     {
-        printf (__FUNCTION__"(x64=%d, ); must_be=%s\n", x64, must_be);
+        printf ("%s(x64=%d, ); must_be=%s\n", __FUNCTION__, x64, must_be);
         printf ("can't disassemble!\n");
         exit(0);
     };
     Da_ToString(d, &t);
     if (_stricmp (t.buf, must_be)!=0)
     {
-        printf (__FUNCTION__"(x64=%d, )->[%s]\n", x64, t.buf);
+        printf ("%s(x64=%d, )->[%s]\n", __FUNCTION__, x64, t.buf);
         printf ("must_be=[%s]\n", must_be);
         for (i=0; i<d->len; i++)
             printf ("code[%d]=0x%02X\n", i, code[i]);
+        //debugger_breakpoint();
         exit(0);
     };
     strbuf_deinit(&t);
@@ -42,7 +45,7 @@ void disas_test2_2op(TrueFalseUndefined x64, const unsigned char* code, disas_ad
         || d->_op[0]->value_width_in_bits!=value1_must_be
         || d->_op[1]->value_width_in_bits!=value2_must_be)
     {
-        printf (__FUNCTION__"(%s, )->[%s]\n", x64 ? "TRUE" : "FALSE", t.buf);
+        printf ("%s(%s, )->[%s]\n", __FUNCTION__, x64 ? "true" : "false", t.buf);
         printf ("must_be=[%s]\n", must_be);
         printf ("d.op[0]->value_width_in_bits=%d\n", d->_op[0]->value_width_in_bits);
         printf ("d.op[1]->value_width_in_bits=%d\n", d->_op[1]->value_width_in_bits);
@@ -151,12 +154,13 @@ void x86_disas_test_32()
 // disasm_text_x64.cpp
 void x86_disas_test_64();
 
-void main()
+int main()
 {
-    printf (__FUNCTION__"() begin\n");
+    printf ("%s() begin\n", __FUNCTION__);
     
     x86_disas_test_32();
     x86_disas_test_64();
 
     print_unused_tbl_entries();
+    return 0;
 };

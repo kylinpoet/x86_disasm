@@ -80,11 +80,11 @@ typedef struct _Da_op
 //#pragma pack(pop)
 
 // functions to work with Da_op struct
-BOOL Da_op_equals(Da_op *op1, Da_op *op2);
-BOOL Da_op_is_reg(Da_op *op, X86_register reg);
+bool Da_op_equals(Da_op *op1, Da_op *op2);
+bool Da_op_is_reg(Da_op *op, X86_register reg);
 void Da_op_ToString (Da_op* op, strbuf* out);
 void Da_op_DumpString (fds* s, Da_op* op);
-BOOL Da_op_is_adr_disp_negative(Da_op *op);
+bool Da_op_is_adr_disp_negative(Da_op *op);
 void Da_op_free(Da_op* op);
 
 //#pragma pack(push)
@@ -102,10 +102,10 @@ typedef struct _Da
 } Da;
 //#pragma pack(pop)
 
-typedef BOOL (*callback_read_byte)(void* param, disas_address adr, uint8_t* out);
-typedef BOOL (*callback_read_word)(void* param, disas_address adr, uint16_t* out);
-typedef BOOL (*callback_read_dword)(void* param, disas_address adr, uint32_t* out);
-typedef BOOL (*callback_read_oword)(void* param, disas_address adr, uint64_t* out);
+typedef bool (*callback_read_byte)(void* param, disas_address adr, uint8_t* out);
+typedef bool (*callback_read_word)(void* param, disas_address adr, uint16_t* out);
+typedef bool (*callback_read_dword)(void* param, disas_address adr, uint32_t* out);
+typedef bool (*callback_read_oword)(void* param, disas_address adr, uint64_t* out);
 
 // functions to work with Da struct
 
@@ -116,17 +116,17 @@ Da* Da_Da_callbacks (TrueFalseUndefined x64_code, disas_address adr_of_ins,
 
 void Da_ToString (Da *d, strbuf *out);
 void Da_DumpString(fds *s, Da *d);
-BOOL Da_is_MOV_EBP_ESP(Da* d);
-BOOL Da_is_PUSH_EBP(Da* d);
-BOOL Da_ins_is_Jcc (Da* d);
-BOOL Da_ins_is_FPU (Da* d);
+bool Da_is_MOV_EBP_ESP(Da* d);
+bool Da_is_PUSH_EBP(Da* d);
+bool Da_ins_is_Jcc (Da* d);
+bool Da_ins_is_FPU (Da* d);
 const char* Da_ins_code_ToString(Da *d);
 int Da_operands_total(Da* d);
 
 // FIXME: 32-bit only?
-BOOL Da_is_ADD_ESP_X (Da* d, uint32_t * out_X);
-BOOL Da_is_SUB_ESP_X (Da* d, uint32_t * out_X);
-BOOL Da_is_RET (Da* d, uint16_t * out_X);
+bool Da_is_ADD_ESP_X (Da* d, uint32_t * out_X);
+bool Da_is_SUB_ESP_X (Da* d, uint32_t * out_X);
+bool Da_is_RET (Da* d, uint16_t * out_X);
 
 void Da_free (Da* d);
 

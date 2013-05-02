@@ -4,8 +4,8 @@
 #pragma once
 
 #include <stdint.h>
+#include <stdbool.h>
 #include "strbuf.h"
-#include "bool.h"
 
 #ifdef  __cplusplus
 extern "C" {
@@ -56,7 +56,7 @@ void decrement_Value(s_Value *v);
 void Value_sign_extended_shift_right (s_Value *op1, s_Value *op2, s_Value *out);
 void Value_free(s_Value *v);
 void copy_Value (s_Value *dst, s_Value *src);
-void Value_to_hex_str (s_Value *v, strbuf* out, BOOL is_asm);
+void Value_to_hex_str (s_Value *v, strbuf* out, bool is_asm);
 
 #ifdef  __cplusplus
 }

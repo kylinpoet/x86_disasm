@@ -5,7 +5,10 @@
 #include "memutils.h"
 #include "bitfields.h"
 #include "strbuf.h"
+#include "stuff.h"
 #include "fmt_utils.h"
+
+extern Ins_definition ins_tbl[]; // in x86_tbl.cpp file
 
 #ifdef _DEBUG
 void dump_Ins_definition(Ins_definition *d)
@@ -21,7 +24,7 @@ void print_unused_tbl_entries()
     int tbl_entries_total=0;
     int i;
 
-    printf (__FUNCTION__"()\n");
+    printf ("%s()\n", __FUNCTION__);
 
     for (i=0;;i++)
     {
@@ -29,7 +32,7 @@ void print_unused_tbl_entries()
 
         if (d->ins_code==I_INVALID)
             break;
-        if (IS_SET(d->flags, F_HIT_DURING_EXECUTION)==FALSE)
+        if (IS_SET(d->flags, F_HIT_DURING_EXECUTION)==false)
         {
             printf ("(untested) ");
             dump_Ins_definition(d);
@@ -43,16 +46,16 @@ void print_unused_tbl_entries()
 };
 #endif
 
-extern Ins_definition ins_tbl[]; // in x86_tbl.cpp file
-
 static unsigned precomputed_ins_pointers[0x100]={0};
-static BOOL precomputed_ins_pointers_present=FALSE;
+static bool precomputed_ins_pointers_present=false;
 
 static void precompute_ins_pointers()
 {
-    int i;
+    int i, entries_total=0;
     unsigned cur_opc;
     Ins_definition *d;
+
+    //printf ("ins_tbl=0x%p\n", ins_tbl);
 
     // check ins_tbl[] monotonicity
     for (i=0, cur_opc=0; ins_tbl[i].ins_code!=I_INVALID; i++)
@@ -65,7 +68,10 @@ static void precompute_ins_pointers()
 
         if (d->opc > cur_opc)
             cur_opc=d->opc;
+        entries_total++;
     };
+
+    //printf ("ins_tbl[] entries=%d\n", entries_total);
 
     // precompute
     for (i=0, cur_opc=0; ins_tbl[i].ins_code!=I_INVALID; i++)
@@ -90,14 +96,14 @@ static void precompute_ins_pointers()
             cur_opc=d->opc;
         };
     }; 
-    precomputed_ins_pointers_present=TRUE;
+    precomputed_ins_pointers_present=true;
 };
 
 uint8_t Da_stage1_get_next_byte(Da_stage1* p)
 {
     uint8_t rt;
-    BOOL b;
-    if (p->use_callbacks==FALSE)
+    bool b;
+    if (p->use_callbacks==false)
     {
         p->cur_ptr++;
         p->cur_adr++;
@@ -107,8 +113,8 @@ uint8_t Da_stage1_get_next_byte(Da_stage1* p)
     {
         p->cur_adr++;
         b=p->read_byte_fn(p->callback_param, p->cur_adr-1, &rt);
-        if (b==FALSE)
-            die (__FUNCTION__"(): can't read byte at 0x" PRI_SIZE_T_HEX "\n", p->cur_adr-1);
+        if (b==false)
+            die ("%s(): can't read byte at 0x" PRI_SIZE_T_HEX "\n", __FUNCTION__, p->cur_adr-1);
         return rt;
     };   
 };
@@ -121,10 +127,10 @@ void Da_stage1_unget_byte(Da_stage1 *p)
 
 uint16_t Da_stage1_get_next_word(Da_stage1 *p)
 {
-    BOOL b;
+    bool b;
     uint16_t rt;
 
-    if (p->use_callbacks==FALSE)
+    if (p->use_callbacks==false)
     {
         p->cur_ptr+=sizeof(uint16_t);
         p->cur_adr+=sizeof(uint16_t); // will you need it?
@@ -134,7 +140,7 @@ uint16_t Da_stage1_get_next_word(Da_stage1 *p)
     {
         p->cur_adr+=sizeof(uint16_t);
         b=p->read_word_fn(p->callback_param, p->cur_adr-sizeof(uint16_t), &rt);
-        assert (b==TRUE);
+        assert (b==true);
         return rt;
     };
 };
@@ -142,9 +148,9 @@ uint16_t Da_stage1_get_next_word(Da_stage1 *p)
 uint32_t Da_stage1_get_next_dword(Da_stage1 *p)
 {
     uint32_t rt;
-    BOOL b;
+    bool b;
 
-    if (p->use_callbacks==FALSE)
+    if (p->use_callbacks==false)
     {
         p->cur_ptr+=sizeof(uint32_t);
         p->cur_adr+=sizeof(uint32_t); // will you need it?
@@ -154,7 +160,7 @@ uint32_t Da_stage1_get_next_dword(Da_stage1 *p)
     {
         p->cur_adr+=sizeof(uint32_t);
         b=p->read_dword_fn(p->callback_param, p->cur_adr-sizeof(uint32_t), &rt);
-        assert (b==TRUE);
+        assert (b==true);
         return rt;
     };
 };
@@ -162,9 +168,9 @@ uint32_t Da_stage1_get_next_dword(Da_stage1 *p)
 uint64_t Da_stage1_get_next_qword (Da_stage1 *p)
 {
     uint64_t rt;
-    BOOL b;
+    bool b;
 
-    if (p->use_callbacks==FALSE)
+    if (p->use_callbacks==false)
     {
         p->cur_ptr+=sizeof(uint64_t);
         p->cur_adr+=sizeof(uint64_t); // will you need it?
@@ -174,7 +180,7 @@ uint64_t Da_stage1_get_next_qword (Da_stage1 *p)
     {
         p->cur_adr+=sizeof(uint64_t);
         b=p->read_oword_fn(p->callback_param, p->cur_adr-sizeof(uint64_t), &rt);
-        assert (b==TRUE);
+        assert (b==true);
         return rt;
     };   
 };
@@ -200,14 +206,14 @@ uint64_t promote_32_flags_to_64 (uint64_t f)
 
 uint8_t Da_stage1_load_prefixes_escapes_opcode (Da_stage1 *p, disas_address adr_of_ins)
 {
-    BOOL got_prefix=TRUE;
+    bool got_prefix=true;
 
     // grp 1/2/3/4 prefixes
     uint8_t next_byte=Da_stage1_get_next_byte(p);
 
     while (got_prefix)
     {
-        got_prefix=TRUE;
+        got_prefix=true;
         switch (next_byte)
         {
         case 0x36:
@@ -231,27 +237,27 @@ uint8_t Da_stage1_load_prefixes_escapes_opcode (Da_stage1 *p, disas_address adr_
             next_byte=Da_stage1_get_next_byte(p);
             break;
         case 0xF2:
-            p->ESCAPE_F2=TRUE; 
+            p->ESCAPE_F2=true; 
             p->len++;
             next_byte=Da_stage1_get_next_byte(p);
             break;
         case 0xF3:
-            p->ESCAPE_F3=TRUE; 
+            p->ESCAPE_F3=true; 
             p->len++;
             next_byte=Da_stage1_get_next_byte(p);
             break;
         case 0x66:
-            p->PREFIX_66_is_present=TRUE;
+            p->PREFIX_66_is_present=true;
             p->len++;
             next_byte=Da_stage1_get_next_byte(p);
             break;
         case 0x67:
-            p->PREFIX_67=TRUE;
+            p->PREFIX_67=true;
             p->len++;
             next_byte=Da_stage1_get_next_byte(p);
             break;
         default:
-            got_prefix=FALSE;
+            got_prefix=false;
             break;
         };
     };
@@ -261,16 +267,16 @@ uint8_t Da_stage1_load_prefixes_escapes_opcode (Da_stage1 *p, disas_address adr_
         // ищем 4x-префиксы
         if ((next_byte&0xF0)==0x40)
         {
-            p->REX_W=p->REX_R=p->REX_X=p->REX_B=FALSE;
+            p->REX_W=p->REX_R=p->REX_X=p->REX_B=false;
 
-            if (IS_SET (next_byte, 1<<3)) p->REX_W=TRUE;
-            if (IS_SET (next_byte, 1<<2)) p->REX_R=TRUE;
-            if (IS_SET (next_byte, 1<<1)) p->REX_X=TRUE;
-            if (IS_SET (next_byte, 1<<0)) p->REX_B=TRUE;
+            if (IS_SET (next_byte, 1<<3)) p->REX_W=true;
+            if (IS_SET (next_byte, 1<<2)) p->REX_R=true;
+            if (IS_SET (next_byte, 1<<1)) p->REX_X=true;
+            if (IS_SET (next_byte, 1<<0)) p->REX_B=true;
 
             //printf ("got 0x%02x prefix. REX_W=%d REX_R=%d REX_X=%d REX_B=%d\n", next_byte, REX_W, REX_R, REX_X, REX_B);
 
-            p->REX_prefix_seen=TRUE;
+            p->REX_prefix_seen=true;
             p->len++;
             next_byte=Da_stage1_get_next_byte(p);
             if ((next_byte&0xF0)==0x40)
@@ -282,7 +288,7 @@ uint8_t Da_stage1_load_prefixes_escapes_opcode (Da_stage1 *p, disas_address adr_
     
     if (next_byte==0x0F)
     {
-        p->ESCAPE_0F=TRUE;
+        p->ESCAPE_0F=true;
         p->len++;
         next_byte=Da_stage1_get_next_byte(p);
     };
@@ -292,24 +298,24 @@ uint8_t Da_stage1_load_prefixes_escapes_opcode (Da_stage1 *p, disas_address adr_
 
 void Da_stage1_dump (Da_stage1 *p, disas_address adr, int len)
 { 
-    //if (p->from_mem_or_from_MemoryCache==FALSE)
+    //if (p->from_mem_or_from_MemoryCache==false)
     {
         assert(!"not implemented");
     }
 #if 0
     else
     {
-        BOOL b=MC_L_print_buf_in_mem (p->mem, adr, len);
-        assert (b==TRUE);
+        bool b=MC_L_print_buf_in_mem (p->mem, adr, len);
+        assert (b==true);
     };
 #endif
 };
 
 // только эта часть дизасма что-то вытягивает из памяти
-BOOL Da_stage1_Da_stage1 (Da_stage1 *p, TrueFalseUndefined x64_code, disas_address adr_of_ins)
+bool Da_stage1_Da_stage1 (Da_stage1 *p, TrueFalseUndefined x64_code, disas_address adr_of_ins)
 {
     uint8_t opc, mask;
-    BOOL PREFIX66_may_present, PREFIX66_allowed_and_present;
+    bool PREFIX66_may_present, PREFIX66_allowed_and_present;
 
     //printf (__FUNCTION__"()\n");
 
@@ -318,19 +324,19 @@ BOOL Da_stage1_Da_stage1 (Da_stage1 *p, TrueFalseUndefined x64_code, disas_addre
     if (x64_code==Fuzzy_Undefined)
     {
 #ifdef _WIN64
-        p->x64=TRUE;
+        p->x64=true;
 #else
-        p->x64=FALSE;
+        p->x64=false;
 #endif
     }
     else if (x64_code==Fuzzy_True)
-        p->x64=TRUE;
+        p->x64=true;
     else
-        p->x64=FALSE;
+        p->x64=false;
 
     opc=Da_stage1_load_prefixes_escapes_opcode (p, adr_of_ins);
 
-    if (precomputed_ins_pointers_present==FALSE)
+    if (precomputed_ins_pointers_present==false)
         precompute_ins_pointers();
 
     //p->tbl_p=0;
@@ -345,8 +351,8 @@ BOOL Da_stage1_Da_stage1 (Da_stage1 *p, TrueFalseUndefined x64_code, disas_addre
             p->new_flags=promote_32_flags_to_64 (p->new_flags);
         };
 
-        if ((IS_SET(p->new_flags, F_REXW_PRESENT) && p->REX_W==FALSE) ||
-                (IS_SET(p->new_flags, F_REXW_ABSENT) && p->REX_W==TRUE))
+        if ((IS_SET(p->new_flags, F_REXW_PRESENT) && p->REX_W==false) ||
+                (IS_SET(p->new_flags, F_REXW_ABSENT) && p->REX_W==true))
         {
             p->tbl_p++;
             continue;
@@ -377,7 +383,7 @@ BOOL Da_stage1_Da_stage1 (Da_stage1 *p, TrueFalseUndefined x64_code, disas_addre
             IS_SET(p->new_flags, F_PREFIX66_IS_PART_OF_OPCODE) ||
             IS_SET(p->new_flags, F_PREFIX66_APPLIED_TO_OP1_ONLY);
 
-        if (p->PREFIX_66_is_present && PREFIX66_may_present==FALSE)
+        if (p->PREFIX_66_is_present && PREFIX66_may_present==false)
         {
             p->tbl_p++;
             continue;
@@ -385,14 +391,14 @@ BOOL Da_stage1_Da_stage1 (Da_stage1 *p, TrueFalseUndefined x64_code, disas_addre
 
         PREFIX66_allowed_and_present=p->PREFIX_66_is_present && IS_SET(p->new_flags, F_PREFIX66_ALLOWED);
 
-        if (IS_SET(p->new_flags, F_PREFIX66_IS_PART_OF_OPCODE) && p->PREFIX_66_is_present==FALSE)
+        if (IS_SET(p->new_flags, F_PREFIX66_IS_PART_OF_OPCODE) && p->PREFIX_66_is_present==false)
         {
             p->tbl_p++;
             continue;
         };
 
         if ((p->x64 && IS_SET (p->new_flags, F_X32_ONLY)) ||
-                ((p->x64==FALSE) && IS_SET (p->new_flags, F_X64_ONLY)))
+                ((p->x64==false) && IS_SET (p->new_flags, F_X64_ONLY)))
         {
             p->tbl_p++;
             continue;
@@ -493,9 +499,9 @@ BOOL Da_stage1_Da_stage1 (Da_stage1 *p, TrueFalseUndefined x64_code, disas_addre
 
             // MODRM is loaded here
 
-            p->MODRM_loaded=TRUE;
+            p->MODRM_loaded=true;
 
-            if (p->PREFIX_67==FALSE)
+            if (p->PREFIX_67==false)
             { // PREFIX_67 absent, 32-bit uint64_ting, second version of modrm table
 
                 // SIB is present?
@@ -505,7 +511,7 @@ BOOL Da_stage1_Da_stage1 (Da_stage1 *p, TrueFalseUndefined x64_code, disas_addre
                         (p->MODRM.s.MOD==2 && p->MODRM.s.RM==4))
                 {
                     p->SIB.as_byte=Da_stage1_get_next_byte(p); p->len++;
-                    p->SIB_loaded=TRUE;
+                    p->SIB_loaded=true;
                 };
 
                 // DISP is present?
@@ -514,17 +520,17 @@ BOOL Da_stage1_Da_stage1 (Da_stage1 *p, TrueFalseUndefined x64_code, disas_addre
                 {
                     p->DISP8=Da_stage1_get_next_byte(p); 
                     p->len++;
-                    p->DISP8_loaded=TRUE;
+                    p->DISP8_loaded=true;
                 };
 
                 if ((p->MODRM.s.MOD==0 && p->MODRM.s.RM==5) || 
                         p->MODRM.s.MOD==2 || 
-                        (p->MODRM.s.MOD==0 && p->SIB_loaded==TRUE && p->SIB.s.base==5)) // DISP32 present, read it
+                        (p->MODRM.s.MOD==0 && p->SIB_loaded==true && p->SIB.s.base==5)) // DISP32 present, read it
                 {
                     p->DISP32=Da_stage1_get_next_dword(p);
                     p->DISP32_pos=p->cur_adr-sizeof(uint32_t);
                     p->len+=4;
-                    p->DISP32_loaded=TRUE;
+                    p->DISP32_loaded=true;
                 };
             } 
             else
@@ -534,14 +540,14 @@ BOOL Da_stage1_Da_stage1 (Da_stage1 *p, TrueFalseUndefined x64_code, disas_addre
                 {
                     p->DISP8=Da_stage1_get_next_byte(p); 
                     p->len++;
-                    p->DISP8_loaded=TRUE;
+                    p->DISP8_loaded=true;
                 };
 
                 if ((p->MODRM.s.MOD==0 && p->MODRM.s.RM==6) || p->MODRM.s.MOD==2) // DISP16 present, read it
                 {
                     p->DISP16=Da_stage1_get_next_word(p); 
                     p->len+=2;
-                    p->DISP16_loaded=TRUE;
+                    p->DISP16_loaded=true;
                 };
             };
         };
@@ -553,33 +559,33 @@ BOOL Da_stage1_Da_stage1 (Da_stage1 *p, TrueFalseUndefined x64_code, disas_addre
         {
             p->IMM16=Da_stage1_get_next_word(p);
             p->len+=2;
-            p->IMM16_loaded=TRUE;
+            p->IMM16_loaded=true;
         };
 
         if (p->new_flags & F_IMM8)
         {
             p->IMM8=Da_stage1_get_next_byte(p); 
             p->len++;
-            p->IMM8_loaded=TRUE;
+            p->IMM8_loaded=true;
         };
 
-        if ((p->new_flags & F_IMM32) && PREFIX66_allowed_and_present==FALSE)
+        if ((p->new_flags & F_IMM32) && PREFIX66_allowed_and_present==false)
         {
-            assert (PREFIX66_allowed_and_present==FALSE);
+            assert (PREFIX66_allowed_and_present==false);
             p->IMM32=Da_stage1_get_next_dword(p);
             p->IMM32_pos=p->cur_adr-sizeof(uint32_t);
             p->len+=4;
-            p->IMM32_loaded=TRUE;
+            p->IMM32_loaded=true;
         };
 
-        if ((p->new_flags & F_IMM64) && PREFIX66_allowed_and_present==FALSE)
+        if ((p->new_flags & F_IMM64) && PREFIX66_allowed_and_present==false)
         {
-            assert (PREFIX66_allowed_and_present==FALSE);
+            assert (PREFIX66_allowed_and_present==false);
             p->IMM64=Da_stage1_get_next_qword(p);
             //L ("IMM64=0x" PRI_REG_HEX "\n", IMM64);
             p->IMM64_pos=p->cur_adr-sizeof(uint64_t);
             p->len+=8;
-            p->IMM64_loaded=TRUE;
+            p->IMM64_loaded=true;
         };
 
         if (p->new_flags & F_PTR)
@@ -589,14 +595,14 @@ BOOL Da_stage1_Da_stage1 (Da_stage1 *p, TrueFalseUndefined x64_code, disas_addre
                 p->PTR=Da_stage1_get_next_qword(p);
                 p->PTR_pos=p->cur_adr-sizeof(uint64_t);
                 p->len+=sizeof(uint64_t);
-                p->PTR_loaded=TRUE;
+                p->PTR_loaded=true;
             }
             else
             {
                 p->PTR=Da_stage1_get_next_dword(p);
                 p->PTR_pos=p->cur_adr-sizeof(uint32_t);
                 p->len+=4;
-                p->PTR_loaded=TRUE;
+                p->PTR_loaded=true;
             };
         };
 
@@ -604,10 +610,10 @@ BOOL Da_stage1_Da_stage1 (Da_stage1 *p, TrueFalseUndefined x64_code, disas_addre
                 (p->new_flags & F_REG64_IS_LOWEST_PART_OF_1ST_BYTE))
         {
             p->REG_FROM_LOWEST_PART_OF_1ST_BYTE=opc&7;
-            p->REG_FROM_LOWEST_PART_OF_1ST_BYTE_loaded=TRUE;
+            p->REG_FROM_LOWEST_PART_OF_1ST_BYTE_loaded=true;
         };
 
-        return TRUE;
+        return true;
     };
 
     // opcode not found
@@ -629,7 +635,7 @@ BOOL Da_stage1_Da_stage1 (Da_stage1 *p, TrueFalseUndefined x64_code, disas_addre
 
     printf ("\n");
 
-    return FALSE;
+    return false;
 };
 
 static X86_register get_x64_reg (int i)
@@ -752,7 +758,7 @@ static X86_register get_STx_reg (int i)
     }
 };
 
-static X86_register get_8bit_reg (int i, BOOL replace_xH_to_xPL_and_xIL)
+static X86_register get_8bit_reg (int i, bool replace_xH_to_xPL_and_xIL)
 {
     if (replace_xH_to_xPL_and_xIL)
     {
@@ -873,7 +879,7 @@ static void decode_SIB (Da_stage1 *stage1,
 
     if (stage1->SIB.s.base==5 && stage1->MODRM.s.MOD==0)
     {
-        assert (stage1->DISP32_loaded==TRUE);
+        assert (stage1->DISP32_loaded==true);
         *adr_disp_width_in_bits=32;
         *adr_disp=stage1->DISP32;
         assert (stage1->DISP32_pos!=0);
@@ -887,7 +893,7 @@ static void decode_SIB (Da_stage1 *stage1,
 #endif
 };
 
-static Da_op *create_Da_op (enum op_source op, Da_stage1 *stage1, disas_address ins_adr, unsigned ins_len)
+static Da_op *create_Da_op (op_source op, Da_stage1 *stage1, disas_address ins_adr, unsigned ins_len)
 {
     Da_op* rt=DCALLOC(Da_op, 1, "Da_op");
 
@@ -927,7 +933,7 @@ static Da_op *create_Da_op (enum op_source op, Da_stage1 *stage1, disas_address 
         if (stage1->x64)
             rt->u.reg=get_8bit_reg ((stage1->REX_B ? 8 : 0) | stage1->REG_FROM_LOWEST_PART_OF_1ST_BYTE, stage1->REX_prefix_seen);
         else
-            rt->u.reg=get_8bit_reg (stage1->REG_FROM_LOWEST_PART_OF_1ST_BYTE, FALSE);
+            rt->u.reg=get_8bit_reg (stage1->REG_FROM_LOWEST_PART_OF_1ST_BYTE, false);
         break;
 
     case OP_1:
@@ -990,7 +996,7 @@ static Da_op *create_Da_op (enum op_source op, Da_stage1 *stage1, disas_address 
     case OP_GS: rt->type=DA_OP_TYPE_REGISTER; rt->value_width_in_bits=16; rt->u.reg=R_GS; break;
 
     case OP_IMM8:
-        assert (stage1->IMM8_loaded==TRUE);
+        assert (stage1->IMM8_loaded==true);
 
         rt->type=DA_OP_TYPE_VALUE;
         rt->value_width_in_bits=8;
@@ -999,7 +1005,7 @@ static Da_op *create_Da_op (enum op_source op, Da_stage1 *stage1, disas_address 
         break;
 
     case OP_IMM8_SIGN_EXTENDED_TO_IMM32:
-        assert (stage1->IMM8_loaded==TRUE); // dirty hack
+        assert (stage1->IMM8_loaded==true); // dirty hack
 
         rt->type=DA_OP_TYPE_VALUE;
         rt->value_width_in_bits=32;
@@ -1008,7 +1014,7 @@ static Da_op *create_Da_op (enum op_source op, Da_stage1 *stage1, disas_address 
         break;
 
     case OP_IMM8_SIGN_EXTENDED_TO_IMM64:
-        assert (stage1->IMM8_loaded==TRUE); // dirty hack
+        assert (stage1->IMM8_loaded==true); // dirty hack
 
         rt->type=DA_OP_TYPE_VALUE;
         rt->value_width_in_bits=64;
@@ -1016,7 +1022,7 @@ static Da_op *create_Da_op (enum op_source op, Da_stage1 *stage1, disas_address 
         break;
 
     case OP_IMM16_SIGN_EXTENDED_TO_IMM32:
-        assert (stage1->IMM16_loaded==TRUE); // dirty hack
+        assert (stage1->IMM16_loaded==true); // dirty hack
 
         rt->type=DA_OP_TYPE_VALUE;
         rt->value_width_in_bits=32;
@@ -1024,7 +1030,7 @@ static Da_op *create_Da_op (enum op_source op, Da_stage1 *stage1, disas_address 
         break;
 
     case OP_IMM16_SIGN_EXTENDED_TO_IMM64:
-        assert (stage1->IMM16_loaded==TRUE); // dirty hack
+        assert (stage1->IMM16_loaded==true); // dirty hack
 
         rt->type=DA_OP_TYPE_VALUE;
         rt->value_width_in_bits=64;
@@ -1032,7 +1038,7 @@ static Da_op *create_Da_op (enum op_source op, Da_stage1 *stage1, disas_address 
         break;
 
     case OP_IMM32_SIGN_EXTENDED_TO_IMM64:
-        assert (stage1->IMM32_loaded==TRUE); // dirty hack
+        assert (stage1->IMM32_loaded==true); // dirty hack
 
         rt->type=DA_OP_TYPE_VALUE;
         rt->value_width_in_bits=64;
@@ -1054,12 +1060,12 @@ static Da_op *create_Da_op (enum op_source op, Da_stage1 *stage1, disas_address 
     case OP_IMM64_AS_ABSOLUTE_ADDRESS_PTR_TO_BYTE:
     case OP_IMM64_AS_ABSOLUTE_ADDRESS_PTR_TO_DWORD:
 
-        assert (stage1->IMM64_loaded==TRUE);
+        assert (stage1->IMM64_loaded==true);
         rt->type=DA_OP_TYPE_VALUE_IN_MEMORY;
         rt->u.adr.adr_disp_width_in_bits=64;
         rt->u.adr.adr_disp=stage1->IMM64;
         //L ("stage1.IMM64=0x" PRI_REG_HEX "\n", stage1.IMM64);
-        rt->u.adr.adr_disp_is_absolute=TRUE;
+        rt->u.adr.adr_disp_is_absolute=true;
         assert (stage1->IMM64_pos!=0);
         rt->u.adr.adr_disp_pos=stage1->IMM64_pos;
         switch (op)
@@ -1077,7 +1083,7 @@ static Da_op *create_Da_op (enum op_source op, Da_stage1 *stage1, disas_address 
         assert (stage1->PTR_loaded);
         rt->type=DA_OP_TYPE_VALUE_IN_MEMORY;
         rt->u.adr.adr_disp=stage1->PTR;
-        rt->u.adr.adr_disp_is_absolute=TRUE;
+        rt->u.adr.adr_disp_is_absolute=true;
         assert (stage1->PTR_pos!=0);
         rt->u.adr.adr_disp_pos=stage1->PTR_pos;
 
@@ -1096,7 +1102,7 @@ static Da_op *create_Da_op (enum op_source op, Da_stage1 *stage1, disas_address 
         break;
 
     case OP_IMM8_SIGN_EXTENDED_TO_IMM16:
-        assert (stage1->IMM8_loaded==TRUE); // dirty hack
+        assert (stage1->IMM8_loaded==true); // dirty hack
 
         rt->type=DA_OP_TYPE_VALUE;
         rt->value_width_in_bits=16;
@@ -1105,7 +1111,7 @@ static Da_op *create_Da_op (enum op_source op, Da_stage1 *stage1, disas_address 
 
 
     case OP_IMM8_AS_REL32:
-        assert (stage1->IMM8_loaded==TRUE);
+        assert (stage1->IMM8_loaded==true);
 
         rt->type=DA_OP_TYPE_VALUE;
         rt->value_width_in_bits=32;
@@ -1113,7 +1119,7 @@ static Da_op *create_Da_op (enum op_source op, Da_stage1 *stage1, disas_address 
         break;
 
     case OP_IMM8_AS_REL64:
-        assert (stage1->IMM8_loaded==TRUE);
+        assert (stage1->IMM8_loaded==true);
 
         rt->type=DA_OP_TYPE_VALUE;
         rt->value_width_in_bits=64;
@@ -1121,7 +1127,7 @@ static Da_op *create_Da_op (enum op_source op, Da_stage1 *stage1, disas_address 
         break;
 
     case OP_IMM16:
-        assert (stage1->IMM16_loaded==TRUE);
+        assert (stage1->IMM16_loaded==true);
 
         rt->type=DA_OP_TYPE_VALUE;
         rt->value_width_in_bits=16;
@@ -1129,7 +1135,7 @@ static Da_op *create_Da_op (enum op_source op, Da_stage1 *stage1, disas_address 
         break;
 
     case OP_IMM32:
-        assert (stage1->IMM32_loaded==TRUE);
+        assert (stage1->IMM32_loaded==true);
 
         rt->type=DA_OP_TYPE_VALUE;
         rt->value_width_in_bits=32;
@@ -1140,7 +1146,7 @@ static Da_op *create_Da_op (enum op_source op, Da_stage1 *stage1, disas_address 
         break;
 
     case OP_IMM64:
-        assert (stage1->IMM64_loaded==TRUE);
+        assert (stage1->IMM64_loaded==true);
 
         rt->type=DA_OP_TYPE_VALUE;
         rt->value_width_in_bits=64;
@@ -1151,7 +1157,7 @@ static Da_op *create_Da_op (enum op_source op, Da_stage1 *stage1, disas_address 
         break;
 
     case OP_IMM32_AS_OFS32:
-        assert (stage1->IMM32_loaded==TRUE);
+        assert (stage1->IMM32_loaded==true);
 
         rt->type=DA_OP_TYPE_VALUE_IN_MEMORY;
         rt->value_width_in_bits=32;
@@ -1163,7 +1169,7 @@ static Da_op *create_Da_op (enum op_source op, Da_stage1 *stage1, disas_address 
         break;
 
     case OP_IMM64_AS_OFS32:
-        assert (stage1->IMM64_loaded==TRUE);
+        assert (stage1->IMM64_loaded==true);
 
         rt->type=DA_OP_TYPE_VALUE_IN_MEMORY;
         rt->value_width_in_bits=32;
@@ -1175,9 +1181,9 @@ static Da_op *create_Da_op (enum op_source op, Da_stage1 *stage1, disas_address 
         break;
 
     case OP_IMM32_AS_OFS16:
-        if (stage1->IMM32_loaded==FALSE)
+        if (stage1->IMM32_loaded==false)
         {
-            L ("stage1->IMM32_loaded==FALSE\n");
+            L ("stage1->IMM32_loaded==false\n");
             L ("instruction:\n");
             Da_stage1_dump(stage1, ins_adr, ins_len);
             L ("ins_adr=0x" PRI_SIZE_T_HEX "\n", ins_adr);
@@ -1197,7 +1203,7 @@ static Da_op *create_Da_op (enum op_source op, Da_stage1 *stage1, disas_address 
         break;
 
     case OP_IMM32_AS_OFS8:
-        assert (stage1->IMM32_loaded==TRUE);
+        assert (stage1->IMM32_loaded==true);
 
         rt->type=DA_OP_TYPE_VALUE_IN_MEMORY;
         rt->value_width_in_bits=8;
@@ -1209,7 +1215,7 @@ static Da_op *create_Da_op (enum op_source op, Da_stage1 *stage1, disas_address 
         break;
  
     case OP_IMM64_AS_OFS8:
-        assert (stage1->IMM64_loaded==TRUE);
+        assert (stage1->IMM64_loaded==true);
 
         rt->type=DA_OP_TYPE_VALUE_IN_MEMORY;
         rt->value_width_in_bits=8;
@@ -1221,7 +1227,7 @@ static Da_op *create_Da_op (enum op_source op, Da_stage1 *stage1, disas_address 
         break;
 
     case OP_IMM32_AS_REL32:
-        assert (stage1->IMM32_loaded==TRUE);
+        assert (stage1->IMM32_loaded==true);
 
         rt->type=DA_OP_TYPE_VALUE;
         rt->value_width_in_bits=32;
@@ -1233,7 +1239,7 @@ static Da_op *create_Da_op (enum op_source op, Da_stage1 *stage1, disas_address 
         break;
 
     case OP_IMM32_SIGN_EXTENDED_TO_REL64:
-        assert (stage1->IMM32_loaded==TRUE);
+        assert (stage1->IMM32_loaded==true);
 
         rt->type=DA_OP_TYPE_VALUE;
         rt->value_width_in_bits=64;
@@ -1245,21 +1251,21 @@ static Da_op *create_Da_op (enum op_source op, Da_stage1 *stage1, disas_address 
         break;
 
     case OP_MODRM_R32:
-        assert (stage1->MODRM_loaded==TRUE);
+        assert (stage1->MODRM_loaded==true);
         rt->type=DA_OP_TYPE_REGISTER; 
         rt->value_width_in_bits=32;
         rt->u.reg=get_x32_reg ((stage1->REX_R ? 8 : 0) | stage1->MODRM.s.REG);
         break;
 
     case OP_MODRM_R64:
-        assert (stage1->MODRM_loaded==TRUE);
+        assert (stage1->MODRM_loaded==true);
         rt->type=DA_OP_TYPE_REGISTER; 
         rt->value_width_in_bits=64;
         rt->u.reg=get_x64_reg ((stage1->REX_R ? 8 : 0) | stage1->MODRM.s.REG);
         break;
 
     case OP_MODRM_R16:
-        assert (stage1->MODRM_loaded==TRUE);
+        assert (stage1->MODRM_loaded==true);
         rt->type=DA_OP_TYPE_REGISTER; rt->value_width_in_bits=16; 
         if (stage1->REX_prefix_seen)
             rt->u.reg=get_x16_reg ((stage1->REX_R ? 8 : 0) | stage1->MODRM.s.REG);
@@ -1268,7 +1274,7 @@ static Da_op *create_Da_op (enum op_source op, Da_stage1 *stage1, disas_address 
         break;
 
     case OP_MODRM_SREG:
-        assert (stage1->MODRM_loaded==TRUE);
+        assert (stage1->MODRM_loaded==true);
         rt->type=DA_OP_TYPE_REGISTER; rt->value_width_in_bits=16; 
         switch (stage1->MODRM.s.REG)
         {
@@ -1284,16 +1290,16 @@ static Da_op *create_Da_op (enum op_source op, Da_stage1 *stage1, disas_address 
         break;
 
     case OP_MODRM_R8:
-        assert (stage1->MODRM_loaded==TRUE);
+        assert (stage1->MODRM_loaded==true);
         rt->type=DA_OP_TYPE_REGISTER; rt->value_width_in_bits=8;
         if (stage1->x64)
             rt->u.reg=get_8bit_reg ((stage1->REX_R ? 8 : 0) | stage1->MODRM.s.REG, stage1->REX_prefix_seen);
         else
-            rt->u.reg=get_8bit_reg (stage1->MODRM.s.REG, FALSE);
+            rt->u.reg=get_8bit_reg (stage1->MODRM.s.REG, false);
         break;
 
     case OP_MODRM_R_XMM:
-        assert (stage1->MODRM_loaded==TRUE);
+        assert (stage1->MODRM_loaded==true);
         rt->type=DA_OP_TYPE_REGISTER; 
         rt->value_width_in_bits=128;
         if (stage1->REX_prefix_seen)
@@ -1303,7 +1309,7 @@ static Da_op *create_Da_op (enum op_source op, Da_stage1 *stage1, disas_address 
         break;
 
     case OP_MODRM_R_MM:
-        assert (stage1->MODRM_loaded==TRUE);
+        assert (stage1->MODRM_loaded==true);
         rt->type=DA_OP_TYPE_REGISTER; rt->value_width_in_bits=64;
         switch (stage1->MODRM.s.REG)
         {
@@ -1325,7 +1331,7 @@ static Da_op *create_Da_op (enum op_source op, Da_stage1 *stage1, disas_address 
     case OP_MODRM_RM_XMM:
     case OP_MODRM_RM_MM:
     case OP_MODRM_RM_M64FP:
-        assert (stage1->MODRM_loaded==TRUE);
+        assert (stage1->MODRM_loaded==true);
         switch (stage1->MODRM.s.MOD)
         {
         case 0: // mod=0
@@ -1346,15 +1352,15 @@ static Da_op *create_Da_op (enum op_source op, Da_stage1 *stage1, disas_address 
             default: assert(0);
             };
 
-            if (stage1->PREFIX_67==FALSE)
-            { // PREFIX_67==FALSE, take 32-bit part of modrm table
+            if (stage1->PREFIX_67==false)
+            { // PREFIX_67==false, take 32-bit part of modrm table
 
                 //cout << "stage1->MODRM_RM=" << (int)stage1->MODRM_RM << endl;
 
                 switch (stage1->MODRM.s.RM)
                 {
                 case 4: // SIB often without disp32, but sometimes with disp32
-                    assert (stage1->SIB_loaded==TRUE);
+                    assert (stage1->SIB_loaded==true);
                     {
                         decode_SIB (stage1,
                             &rt->u.adr.adr_base,
@@ -1363,12 +1369,12 @@ static Da_op *create_Da_op (enum op_source op, Da_stage1 *stage1, disas_address 
                             &rt->u.adr.adr_disp,
                             &rt->u.adr.adr_disp_width_in_bits,
                             &rt->u.adr.adr_disp_pos);
-                        rt->u.adr.adr_disp_is_not_negative=TRUE;
+                        rt->u.adr.adr_disp_is_not_negative=true;
                     };
 
                     break;
                 case 5:  
-                    assert (stage1->DISP32_loaded==TRUE);
+                    assert (stage1->DISP32_loaded==true);
                     //cout << hex << "stage1->DISP32=" << stage1->DISP32 << endl;
                     if (stage1->x64)
                     {
@@ -1384,7 +1390,7 @@ static Da_op *create_Da_op (enum op_source op, Da_stage1 *stage1, disas_address 
                     };
                     assert (stage1->DISP32_pos!=0);
                     rt->u.adr.adr_disp_pos=stage1->DISP32_pos;
-                    rt->u.adr.adr_disp_is_not_negative=TRUE;
+                    rt->u.adr.adr_disp_is_not_negative=true;
                     break; // EA is just disp32
                 
                 case 0:
@@ -1402,7 +1408,7 @@ static Da_op *create_Da_op (enum op_source op, Da_stage1 *stage1, disas_address 
                 default: assert(0); break;
                 };
             } else
-            { // PREFIX_67==TRUE, take 16-bit part of modrm table
+            { // PREFIX_67==true, take 16-bit part of modrm table
                 switch (stage1->MODRM.s.RM)
                 {
                 case 0:
@@ -1412,9 +1418,9 @@ static Da_op *create_Da_op (enum op_source op, Da_stage1 *stage1, disas_address 
                 case 4:
                 case 5:  
                 case 7:  
-                    assert (!"PREFIX_67=TRUE, we don't process 16-bit part of modrm table (yet)");
+                    assert (!"PREFIX_67=true, we don't process 16-bit part of modrm table (yet)");
                 case 6: // take disp16
-                    assert (stage1->DISP16_loaded==TRUE);
+                    assert (stage1->DISP16_loaded==true);
                     // на практике это только в случае FS:[..] вроде...
 
                     rt->type=DA_OP_TYPE_VALUE_IN_MEMORY; rt->value_width_in_bits=32;
@@ -1441,12 +1447,12 @@ static Da_op *create_Da_op (enum op_source op, Da_stage1 *stage1, disas_address 
             default: assert(0);
             };
 
-            assert (stage1->PREFIX_67==FALSE); // yet...
+            assert (stage1->PREFIX_67==false); // yet...
             switch (stage1->MODRM.s.RM)
             {
             case 4:  // SIB byte present, SIB+disp8; 
-                assert (stage1->SIB_loaded==TRUE);
-                assert (stage1->DISP8_loaded==TRUE);
+                assert (stage1->SIB_loaded==true);
+                assert (stage1->DISP8_loaded==true);
                 {
                     decode_SIB (stage1,
                         &rt->u.adr.adr_base,
@@ -1484,7 +1490,7 @@ static Da_op *create_Da_op (enum op_source op, Da_stage1 *stage1, disas_address 
             case 5:  
             case 6:  
             case 7:  
-                assert (stage1->DISP8_loaded==TRUE);
+                assert (stage1->DISP8_loaded==true);
                 //if (op==OP_MODRM_RM64)
                 if (stage1->x64)
                     rt->u.adr.adr_base=get_x64_reg((stage1->REX_B ? 8 : 0) | stage1->MODRM.s.RM);
@@ -1517,12 +1523,12 @@ static Da_op *create_Da_op (enum op_source op, Da_stage1 *stage1, disas_address 
             default: assert(0);
             };
 
-            assert (stage1->PREFIX_67==FALSE); // yet...
+            assert (stage1->PREFIX_67==false); // yet...
             switch (stage1->MODRM.s.RM)
             {
             case 4:  // SIB byte present, SIB+disp32; 
-                assert (stage1->SIB_loaded==TRUE);
-                assert (stage1->DISP32_loaded==TRUE);
+                assert (stage1->SIB_loaded==true);
+                assert (stage1->DISP32_loaded==true);
                 {
                     decode_SIB (stage1,
                         &rt->u.adr.adr_base,
@@ -1560,7 +1566,7 @@ static Da_op *create_Da_op (enum op_source op, Da_stage1 *stage1, disas_address 
             case 5:  
             case 6:  
             case 7:  
-                assert (stage1->DISP32_loaded==TRUE);
+                assert (stage1->DISP32_loaded==true);
                 if (stage1->x64)
                     rt->u.adr.adr_base=get_x64_reg((stage1->REX_B ? 8 : 0) | stage1->MODRM.s.RM);
                 else
@@ -1623,7 +1629,7 @@ static Da_op *create_Da_op (enum op_source op, Da_stage1 *stage1, disas_address 
                 if (stage1->x64)
                     rt->u.reg=get_8bit_reg ((stage1->REX_B ? 0x8 : 0) | stage1->MODRM.s.RM, stage1->REX_prefix_seen);
                 else
-                    rt->u.reg=get_8bit_reg (stage1->MODRM.s.RM, FALSE);
+                    rt->u.reg=get_8bit_reg (stage1->MODRM.s.RM, false);
                 break;
             case OP_MODRM_RM_XMM:
 
@@ -1673,7 +1679,7 @@ static Da_op *create_Da_op (enum op_source op, Da_stage1 *stage1, disas_address 
     return rt;
 };
 
-static enum op_source shrink_op_32_to_16 (enum op_source op)
+static op_source shrink_op_32_to_16 (op_source op)
 {
     switch (op)
     {
@@ -1700,7 +1706,7 @@ static enum op_source shrink_op_32_to_16 (enum op_source op)
     };
 };
 
-static enum op_source sign_extend_op_32_to_64 (enum op_source op)
+static op_source sign_extend_op_32_to_64 (op_source op)
 {
     switch (op)
     {
@@ -1711,7 +1717,7 @@ static enum op_source sign_extend_op_32_to_64 (enum op_source op)
     };
 };
 
-static enum op_source promote_op_32_to_64 (enum op_source op)
+static op_source promote_op_32_to_64 (op_source op)
 {
     switch (op)
     {
@@ -1793,7 +1799,11 @@ Da* Da_stage1_into_result (Da_stage1 *stage1, disas_address adr_of_ins)
     if (i->op1!=OP_ABSENT) rt->_op[0]=create_Da_op (new_op1, stage1, adr_of_ins, rt->len);
     if (i->op2!=OP_ABSENT) rt->_op[1]=create_Da_op (new_op2, stage1, adr_of_ins, rt->len);
     if (i->op3!=OP_ABSENT) rt->_op[2]=create_Da_op (new_op3, stage1, adr_of_ins, rt->len);
-
+/*
+    printf ("rt->_op[0]=0x%p\n", rt->_op[0]);
+    printf ("rt->_op[1]=0x%p\n", rt->_op[1]);
+    printf ("rt->_op[2]=0x%p\n", rt->_op[2]);
+*/
     if (rt->ins_code==I_XCHG && (Da_op_equals (rt->_op[0], rt->_op[1])))
     {
         rt->ins_code=I_NOP;
@@ -1838,15 +1848,28 @@ Da* Da_stage1_into_result (Da_stage1 *stage1, disas_address adr_of_ins)
 Da* Da_Da (TrueFalseUndefined x64_code, uint8_t* ptr_to_ins, disas_address adr_of_ins)
 {
     Da_stage1 stage1;
-    
+    Da *rt;
+
     bzero (&stage1, sizeof(Da_stage1));
 
-    stage1.use_callbacks=FALSE;
+    stage1.use_callbacks=false;
     stage1.cur_ptr=ptr_to_ins;
     
-    if (Da_stage1_Da_stage1(&stage1, x64_code, adr_of_ins)==FALSE)
+    if (Da_stage1_Da_stage1(&stage1, x64_code, adr_of_ins)==false)
+    {
+#ifdef _DEBUG
+        printf ("Da_stage1_Da_stage1() failed\n");
+#endif
         return NULL;
-    return Da_stage1_into_result (&stage1, adr_of_ins);
+    };
+    rt=Da_stage1_into_result (&stage1, adr_of_ins);
+
+#ifdef _DEBUG
+    if (rt==NULL)
+        printf ("Da_stage1_into_result() failed\n");
+#endif
+
+    return rt;
 };
 
 Da* Da_Da_callbacks (TrueFalseUndefined x64_code, disas_address adr_of_ins, 
@@ -1857,29 +1880,29 @@ Da* Da_Da_callbacks (TrueFalseUndefined x64_code, disas_address adr_of_ins,
     
     bzero (&stage1, sizeof(Da_stage1));
 
-    stage1.use_callbacks=TRUE;
+    stage1.use_callbacks=true;
     stage1.read_byte_fn=rb;
     stage1.read_word_fn=rw;
     stage1.read_dword_fn=rd;
     stage1.read_oword_fn=ro;
     stage1.callback_param=param;
 
-    if (Da_stage1_Da_stage1(&stage1, x64_code, adr_of_ins)==FALSE)
+    if (Da_stage1_Da_stage1(&stage1, x64_code, adr_of_ins)==false)
         return NULL;
     return Da_stage1_into_result (&stage1, adr_of_ins);
 };
 
-BOOL Da_op_is_reg(Da_op *op, X86_register reg)
+bool Da_op_is_reg(Da_op *op, X86_register reg)
 {
     return op->type==DA_OP_TYPE_REGISTER && op->u.reg==reg;
 };
 
-BOOL Da_is_MOV_EBP_ESP(Da *d)
+bool Da_is_MOV_EBP_ESP(Da *d)
 {
     return (d->ins_code==I_MOV) && Da_op_is_reg(d->_op[0], R_EBP) && Da_op_is_reg(d->_op[1], R_ESP);
 };
 
-BOOL Da_is_PUSH_EBP(Da *d)
+bool Da_is_PUSH_EBP(Da *d)
 {
     return (d->ins_code==I_PUSH) && Da_op_is_reg(d->_op[0], R_EBP);
 };
@@ -1891,7 +1914,7 @@ BOOL Da_is_PUSH_EBP(Da *d)
 //using namespace std;
 
 // FIXME: переписать
-BOOL Da_op_is_adr_disp_negative(Da_op *op)
+bool Da_op_is_adr_disp_negative(Da_op *op)
 {
     if (op->u.adr.adr_disp_width_in_bits==32)
         return (op->u.adr.adr_disp & 0x80000000)!=0;
@@ -1900,13 +1923,13 @@ BOOL Da_op_is_adr_disp_negative(Da_op *op)
     else
     {
         //assert(0);
-        return FALSE; // FIXME! чо за хрень
+        return false; // FIXME! чо за хрень
     };
 };
 
 void Da_op_ToString (Da_op* op, strbuf* out)
 {
-    BOOL something_added=FALSE;
+    bool something_added=false;
 
     assert (op->type!=DA_OP_TYPE_ABSENT);
 
@@ -1918,7 +1941,7 @@ void Da_op_ToString (Da_op* op, strbuf* out)
 
         case DA_OP_TYPE_VALUE:
 
-            Value_to_hex_str (&op->u.val.v, out, TRUE); // asm notation here
+            Value_to_hex_str (&op->u.val.v, out, true); // asm notation here
             break;
 
         case DA_OP_TYPE_VALUE_IN_MEMORY:
@@ -1927,7 +1950,7 @@ void Da_op_ToString (Da_op* op, strbuf* out)
             if (op->u.adr.adr_base != R_ABSENT)
             {
                 strbuf_addstr (out, X86_register_ToString (op->u.adr.adr_base));
-                something_added=TRUE;
+                something_added=true;
             };
 
             if (op->u.adr.adr_index!=R_ABSENT)
@@ -1937,7 +1960,7 @@ void Da_op_ToString (Da_op* op, strbuf* out)
                     if (something_added)
                         strbuf_addc(out, '+');
                     strbuf_addstr(out, X86_register_ToString (op->u.adr.adr_index));
-                    something_added=TRUE;
+                    something_added=true;
                 }
                 else
                 {
@@ -1945,12 +1968,12 @@ void Da_op_ToString (Da_op* op, strbuf* out)
                         strbuf_addc(out, '+');
                     strbuf_addstr (out, X86_register_ToString (op->u.adr.adr_index));
                     strbuf_addf (out, "*%d", op->u.adr.adr_index_mult);
-                    something_added=TRUE;
+                    something_added=true;
                 };
             };
 
             // FIXME: забыл, что тут надо было фиксить
-            if (op->u.adr.adr_disp_is_not_negative==FALSE && Da_op_is_adr_disp_negative(op) && op->u.adr.adr_disp_is_absolute==FALSE)
+            if (op->u.adr.adr_disp_is_not_negative==false && Da_op_is_adr_disp_negative(op) && op->u.adr.adr_disp_is_absolute==false)
             {
                 if (something_added)
                     strbuf_addc (out, '-');
@@ -1965,7 +1988,7 @@ void Da_op_ToString (Da_op* op, strbuf* out)
             }
             else
             {
-                if (op->u.adr.adr_disp!=0 || something_added==FALSE)
+                if (op->u.adr.adr_disp!=0 || something_added==false)
                 {
                     if (something_added)
                         strbuf_addc (out, '+');
@@ -1996,7 +2019,7 @@ void Da_op_DumpString (fds *s, Da_op* op)
     strbuf_deinit(&t);
 };
 
-BOOL Da_ins_is_Jcc (Da* d)
+bool Da_ins_is_Jcc (Da* d)
 {
     switch (d->ins_code)
     {
@@ -2017,9 +2040,9 @@ BOOL Da_ins_is_Jcc (Da* d)
     case I_JP:
     case I_JS:
     case I_JZ:
-        return TRUE;
+        return true;
     default:
-        return FALSE;
+        return false;
     };
 };
 
@@ -2069,7 +2092,7 @@ void Da_DumpString(fds* s, Da *d)
     strbuf_deinit(&t);
 };
 
-BOOL Da_ins_is_FPU (Da *d)
+bool Da_ins_is_FPU (Da *d)
 {
     switch (d->ins_code)
     {
@@ -2110,22 +2133,22 @@ BOOL Da_ins_is_FPU (Da *d)
     case I_FXSAVE:
     case I_FUCOMPP:
     case I_FUCOMP:
-        return TRUE;
+        return true;
 
     default:
-        return FALSE;
+        return false;
     };
 };
 
-BOOL Da_op_equals(Da_op *op1, Da_op *op2)
+bool Da_op_equals(Da_op *op1, Da_op *op2)
 {
-    if (op1->type != op2->type) return FALSE;
-    if (op1->value_width_in_bits != op2->value_width_in_bits) return FALSE;
+    if (op1->type != op2->type) return false;
+    if (op1->value_width_in_bits != op2->value_width_in_bits) return false;
 
     switch (op1->type)
     {
     case DA_OP_TYPE_ABSENT: 
-        return TRUE;
+        return true;
 
     case DA_OP_TYPE_REGISTER: 
         return op1->u.reg == op2->u.reg;
@@ -2134,17 +2157,17 @@ BOOL Da_op_equals(Da_op *op1, Da_op *op2)
         return compare_Values (&op1->u.val.v, &op2->u.val.v) && (op1->u.val.value32_pos == op2->u.val.value32_pos);
 
     case DA_OP_TYPE_VALUE_IN_MEMORY:
-        if (op1->u.adr.adr_base != op2->u.adr.adr_base) return FALSE;
-        if (op1->u.adr.adr_index != op2->u.adr.adr_index) return FALSE;
-        if (op1->u.adr.adr_index_mult != op2->u.adr.adr_index_mult) return FALSE;
-        if (op1->u.adr.adr_disp_width_in_bits != op2->u.adr.adr_disp_width_in_bits) return FALSE;
-        if (op1->u.adr.adr_disp != op2->u.adr.adr_disp) return FALSE;
-        if (op1->u.adr.adr_disp_pos != op2->u.adr.adr_disp_pos) return FALSE;
-        return TRUE; // а в остальном - здоров как бык!
+        if (op1->u.adr.adr_base != op2->u.adr.adr_base) return false;
+        if (op1->u.adr.adr_index != op2->u.adr.adr_index) return false;
+        if (op1->u.adr.adr_index_mult != op2->u.adr.adr_index_mult) return false;
+        if (op1->u.adr.adr_disp_width_in_bits != op2->u.adr.adr_disp_width_in_bits) return false;
+        if (op1->u.adr.adr_disp != op2->u.adr.adr_disp) return false;
+        if (op1->u.adr.adr_disp_pos != op2->u.adr.adr_disp_pos) return false;
+        return true; // а в остальном - здоров как бык!
 
     default:
         assert(0);
-        return FALSE; // make compiler happy
+        return false; // make compiler happy
     };
 };
 
@@ -2165,7 +2188,7 @@ int Da_operands_total(Da* d)
 };
 
 #if 0
-BOOL Da_op::is_EBP_plus_minus_X (address_offset & x) const // x can be negative/positive here
+bool Da_op::is_EBP_plus_minus_X (address_offset & x) const // x can be negative/positive here
 {
     if (type==DA_OP_TYPE_VALUE_IN_MEMORY &&
         adr_base==R_EBP &&
@@ -2173,43 +2196,43 @@ BOOL Da_op::is_EBP_plus_minus_X (address_offset & x) const // x can be negative/
         adr_index_mult==1)
     {
         x=(address_offset)adr_disp;
-        return TRUE;
+        return true;
     }
     else
-        return FALSE;
+        return false;
 }
 #endif
 
 // FIXME: REG should be here? or Value?
-BOOL Da_is_ADD_ESP_X (Da* d, uint32_t * out_X)
+bool Da_is_ADD_ESP_X (Da* d, uint32_t * out_X)
 {
-    if (d->ins_code!=I_ADD) return FALSE;
+    if (d->ins_code!=I_ADD) return false;
     assert (d->_op[0]->type==DA_OP_TYPE_REGISTER);
-    if (d->_op[0]->u.reg != R_ESP) return FALSE;
-    if (d->_op[1]->type != DA_OP_TYPE_VALUE) return FALSE;
+    if (d->_op[0]->u.reg != R_ESP) return false;
+    if (d->_op[1]->type != DA_OP_TYPE_VALUE) return false;
     *out_X = get_as_32(&d->_op[1]->u.val.v);
-    return TRUE;
+    return true;
 };
 
 // FIXME: REG should be here? or Value?
-BOOL Da_is_SUB_ESP_X (Da* d, uint32_t * out_X)
+bool Da_is_SUB_ESP_X (Da* d, uint32_t * out_X)
 {
-    if (d->ins_code!=I_SUB) return FALSE;
+    if (d->ins_code!=I_SUB) return false;
     assert (d->_op[0]->type==DA_OP_TYPE_REGISTER);
-    if (d->_op[0]->u.reg != R_ESP) return FALSE;
-    if (d->_op[1]->type != DA_OP_TYPE_VALUE) return FALSE;
+    if (d->_op[0]->u.reg != R_ESP) return false;
+    if (d->_op[1]->type != DA_OP_TYPE_VALUE) return false;
     *out_X = get_as_32(&d->_op[1]->u.val.v);
-    return TRUE;
+    return true;
 };
 
-BOOL Da_is_RET (Da* d, uint16_t * out_X)
+bool Da_is_RET (Da* d, uint16_t * out_X)
 {
-    if (d->ins_code!=I_RETN) return FALSE;
+    if (d->ins_code!=I_RETN) return false;
     if (d->_op[0] && d->_op[0]->type==DA_OP_TYPE_VALUE)
         *out_X = get_as_16(&d->_op[0]->u.val.v);
     else
         *out_X = 0;
-    return TRUE;
+    return true;
 };
 
 void Da_op_free(Da_op* op)

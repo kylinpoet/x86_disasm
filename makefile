@@ -1,33 +1,36 @@
-OCTOTHORPE=C:\Users\Administrator\Projects\octothorpe
-OCTOTHORPE_LIB=$(OCTOTHORPE)\octothorped.lib
-CL_OPTIONS=/c /D_DEBUG /Zi /I$(OCTOTHORPE)
+OCTOTHORPE=../octothorpe/
+CC=gcc
+CPPFLAGS=-D_DEBUG -I$(OCTOTHORPE)
+#CPPFLAGS=
+CFLAGS=-Wall -g $(CPPFLAGS)
+COMPILE_ONLY_CFLAGS=-c $(CFLAGS)
+SOURCES=value.c x86_disas.c X86_register.c x86_tbl.c
+TEST_SOURCES=x86_disasm_test_x64.c x86_disasm_tests.c
+OBJECTS=$(SOURCES:.c=.o)
+TEST_OBJECTS=$(TEST_SOURCES:.c=.o)
+TEST_EXECS=$(TEST_SOURCES:.c=.exe)
+LIBRARY=x86_disasmd.a
+OCTOTHORPE_LIBRARY=$(OCTOTHORPE)octothorped.a
 
-value.obj: value.c value.h
-	cl.exe value.c $(CL_OPTIONS)
-
-X86_register.obj: X86_register.c X86_register.h
-	cl.exe X86_register.c $(CL_OPTIONS)
-
-x86_tbl.obj: x86_tbl.c
-	cl.exe x86_tbl.c $(CL_OPTIONS)
-
-x86_disas.obj: x86_disas.c x86_disas.h
-	cl.exe x86_disas.c $(CL_OPTIONS)
-
-x86_disasm_tests.obj: x86_disasm_tests.c test32_1.h test32_2.h
-	cl.exe x86_disasm_tests.c $(CL_OPTIONS)
-
-x86_disasm_test_x64.obj: x86_disasm_test_x64.c
-	cl.exe x86_disasm_test_x64.c $(CL_OPTIONS)
-	
-x86_disasmd.lib: value.obj X86_register.obj x86_tbl.obj x86_disas.obj
-	lib.exe value.obj X86_register.obj x86_tbl.obj x86_disas.obj /OUT:x86_disasmd.lib
-
-x86_disasm_tests.exe: x86_disasm_tests.obj x86_disasm_test_x64.obj x86_disasmd.lib
-	link x86_disasm_tests.obj x86_disasm_test_x64.obj $(OCTOTHORPE_LIB) x86_disasmd.lib /DEBUG /SUBSYSTEM:CONSOLE /PDB:x86_disasm_tests.pdb
-
-all: x86_disasmd.lib x86_disasm_tests.exe
+all: $(LIBRARY) x86_disasm_tests.exe
 
 clean:
-	del *.lib *.exe *.obj *.asm
+	rm $(OBJECTS)
+	rm $(TEST_OBJECTS)
+	rm $(LIBRARY)
+	rm x86_disasm_tests.exe
+
+$(LIBRARY): $(OBJECTS)
+	ar -mc $(LIBRARY) $(OBJECTS)
+
+-include $(OBJECTS:.o=.d)
+
+%.o: %.c
+	$(CC) $(COMPILE_ONLY_CFLAGS) $*.c -o $*.o
+	$(CC) -MM $(COMPILE_ONLY_CFLAGS) $*.c > $*.d
+
+# test:
+
+x86_disasm_tests.exe: x86_disasm_tests.o x86_disasm_test_x64.o $(LIBRARY)
+	$(CC) $(CFLAGS) x86_disasm_tests.c x86_disasm_test_x64.o $(LIBRARY) $(OCTOTHORPE_LIBRARY) -o $@
 

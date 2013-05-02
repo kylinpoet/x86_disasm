@@ -135,17 +135,17 @@ typedef enum X86_register_t
 } X86_register;
 
 X86_register X86_register_from_string (const char* s);
-//BOOL X86_register_from_string (const char* s, X86_register *out);
-BOOL X86_register_is_flag (X86_register r);
-BOOL X86_register_is_STx (X86_register r);
+//bool X86_register_from_string (const char* s, X86_register *out);
+bool X86_register_is_flag (X86_register r);
+bool X86_register_is_STx (X86_register r);
 const char* X86_register_ToString (X86_register r);
 
-BOOL X86_register_is_ExX_ExI(X86_register r);
-BOOL X86_register_is_xX_xI(X86_register r);
-BOOL X86_register_is_xH(X86_register r);
-BOOL X86_register_is_xL(X86_register r);
-BOOL X86_register_is_segment(X86_register r);
-BOOL X86_register_is_XMMx(X86_register r);
+bool X86_register_is_ExX_ExI(X86_register r);
+bool X86_register_is_xX_xI(X86_register r);
+bool X86_register_is_xH(X86_register r);
+bool X86_register_is_xL(X86_register r);
+bool X86_register_is_segment(X86_register r);
+bool X86_register_is_XMMx(X86_register r);
 X86_register X86_register_get_32bit_part_of(X86_register r);
 
 #ifdef  __cplusplus

@@ -1,5 +1,6 @@
 #include "x86_disas.h"
 #include "x86_disas_internals.h"
+#include "x86_disasm_tests.h"
 
 void x86_disas_test_64()
 {

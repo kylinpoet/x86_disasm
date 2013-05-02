@@ -111,7 +111,7 @@ uint32_t get_as_32(s_Value* i)
 {
     assert (i->t!=V_INVALID && i->t!=V_XMM);
     if (i->u.v>UINT32_MAX)
-        fprintf (stderr, __FUNCTION__"() warning: u.v is bigger than uint32_t\n");
+        fprintf (stderr, "%s() warning: u.v is bigger than uint32_t\n", __FUNCTION__);
     return (uint32_t)(i->u.v & get_type_mask (i->t));
 };
 
@@ -119,7 +119,7 @@ uint16_t get_as_16(s_Value* i)
 {
     assert (i->t!=V_INVALID && i->t!=V_XMM);
     if (i->u.v>UINT16_MAX)
-        fprintf (stderr, __FUNCTION__"() warning: u.v is bigger than uint16_t\n");
+        fprintf (stderr, "%s() warning: u.v is bigger than uint16_t\n", __FUNCTION__);
     return (uint16_t)(i->u.v & get_type_mask (i->t));
 };
 
@@ -127,7 +127,7 @@ uint8_t get_as_8(s_Value* i)
 {
     assert (i->t!=V_INVALID && i->t!=V_XMM);
     if (i->u.v>UINT8_MAX)
-        fprintf (stderr, __FUNCTION__"() warning: u.v is bigger than uint8_t\n");
+        fprintf (stderr, "%s() warning: u.v is bigger than uint8_t\n", __FUNCTION__);
     return (uint8_t)(i->u.v & get_type_mask (i->t));
 };
 
@@ -173,13 +173,13 @@ static void dump_Value (s_Value *i)
             printf ("QWORD: 0x%I64x", i->u.v);
             break;
         case V_DWORD:
-            printf ("DWORD: 0x%08X", i->u.v);
+            printf ("DWORD: 0x%08X", (tetrabyte)i->u.v);
             break;
         case V_WORD:
-            printf ("WORD: 0x%04X", i->u.v);
+            printf ("WORD: 0x%04X", (wyde)i->u.v);
             break;
         case V_BYTE:
-            printf ("BYTE: 0x%02X", i->u.v);
+            printf ("BYTE: 0x%02X", (byte)i->u.v);
             break;
         default:
             assert(0);
@@ -245,7 +245,7 @@ void copy_Value (s_Value *dst, s_Value *src)
     memcpy (dst, src, sizeof(s_Value));
 };
 
-void Value_to_hex_str (s_Value *val, strbuf* out, BOOL is_asm)
+void Value_to_hex_str (s_Value *val, strbuf* out, bool is_asm)
 {
     uint64_t v=val->u.v;
     
