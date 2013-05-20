@@ -2246,6 +2246,8 @@ void Da_op_free(Da_op* op)
 
 void Da_free (Da* d)
 {
+    if (d==NULL) // free(NULL) behaviour
+        return;
     if (d->_op[0]) Da_op_free (d->_op[0]);
     if (d->_op[1]) Da_op_free (d->_op[1]);
     if (d->_op[2]) Da_op_free (d->_op[2]);

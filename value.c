@@ -285,3 +285,12 @@ void Value_to_hex_str (s_Value *val, strbuf* out, bool is_asm)
             break;
     };
 };
+
+REG get_as_REG(s_Value* i)
+{
+#ifdef _WIN64
+    return get_as_64(i);
+#else
+    return get_as_32(i);
+#endif
+};
