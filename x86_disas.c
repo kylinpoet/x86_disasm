@@ -2012,8 +2012,7 @@ void Da_op_ToString (Da_op* op, strbuf* out)
 
 void Da_op_DumpString (fds *s, Da_op* op)
 {
-    strbuf t;
-    strbuf_init (&t, 10);
+    strbuf t=STRBUF_INIT;
     Da_op_ToString(op, &t);
     L_fds (s, t.buf);
     strbuf_deinit(&t);
