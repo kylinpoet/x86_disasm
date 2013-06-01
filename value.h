@@ -22,7 +22,7 @@ union value_u
 
 enum value_t
 {
-    V_INVALID,
+    V_INVALID=0,
     V_BYTE,
     V_WORD,
     V_DWORD,

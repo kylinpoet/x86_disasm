@@ -302,5 +302,7 @@ typedef enum Ins_codes_t
     I_XLAT,
     I_XOR,
     I_XORPD,
-    I_XORPS
+    I_XORPS,
+
+    I_MAX_INS
 } Ins_codes;
