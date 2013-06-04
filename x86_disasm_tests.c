@@ -1,6 +1,6 @@
 #include <assert.h>
 #include "stuff.h"
-
+#include "strbuf.h"
 #include "x86_disas.h"
 
 #include "XOR_tests.h"

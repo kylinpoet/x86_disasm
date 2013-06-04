@@ -1,3 +1,5 @@
+# not maintained
+
 OCTOTHORPE=C:\Users\Administrator\Projects\octothorpe
 OCTOTHORPE_LIB=$(OCTOTHORPE)\octothorped.lib
 CL_OPTIONS=/c /D_DEBUG /Zi /I$(OCTOTHORPE)
