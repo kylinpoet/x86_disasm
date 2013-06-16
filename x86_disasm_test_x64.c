@@ -5,7 +5,8 @@
 void x86_disas_test_64()
 {
     //printf (__FUNCTION__"() begin\n");
-    
+
+    //disas_test1(Fuzzy_True, (const unsigned char*)"\x48\x8D\x68\xB8", 0x8855, "?"); // checked in IDA
     disas_test1(Fuzzy_True, (const unsigned char*)"\x48\x05\x90\x90\x90\x90", 0x8855, "ADD RAX, 0FFFFFFFF90909090h"); // checked in IDA
     disas_test1(Fuzzy_True, (const unsigned char*)"\x48\x0F\x90\x90\x90\x90\x90\x90", 0x88ff, "SETO [RAX-6F6F6F70h]");
     disas_test1(Fuzzy_True, (const unsigned char*)"\x0F\x1F\x40\x00", 0x1234, "NOP [RAX]");

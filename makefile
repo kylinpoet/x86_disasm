@@ -1,7 +1,7 @@
 CC=gcc
 OCTOTHORPE=../octothorpe
 CPPFLAGS=-D_DEBUG -I$(OCTOTHORPE)
-CFLAGS=-Wall -g
+CFLAGS=-Wall -g -std=gnu99
 SOURCES=value.c x86_disas.c X86_register.c x86_tbl.c
 TEST_SOURCES=x86_disasm_test_x64.c x86_disasm_tests.c
 OUTDIR=$(MSYSTEM)_debug

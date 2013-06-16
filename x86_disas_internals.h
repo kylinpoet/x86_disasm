@@ -80,12 +80,12 @@ typedef struct _Da_stage1
 //#pragma pack(pop)
 
 // "methods"
-uint8_t Da_stage1_get_next_byte(Da_stage1* p);
+bool Da_stage1_get_next_byte(Da_stage1* p, uint8_t *out);
 void Da_stage1_unget_byte(Da_stage1 *p);
-uint16_t Da_stage1_get_next_word(Da_stage1 *p);
-uint32_t Da_stage1_get_next_dword(Da_stage1 *p);
-uint64_t Da_stage1_get_next_qword (Da_stage1 *p);
-uint8_t Da_stage1_load_prefixes_escapes_opcode (Da_stage1 *p, disas_address adr_of_ins);
+bool Da_stage1_get_next_word(Da_stage1 *p, uint16_t *out);
+bool Da_stage1_get_next_dword(Da_stage1 *p, uint32_t *out);
+bool Da_stage1_get_next_qword (Da_stage1 *p, uint64_t *out);
+bool Da_stage1_load_prefixes_escapes_opcode (Da_stage1 *p, disas_address adr_of_ins, uint8_t *out);
 void Da_stage1_dump (Da_stage1 *p, disas_address adr, int len);
 bool Da_stage1_Da_stage1 (Da_stage1 *p, TrueFalseUndefined x64_code, disas_address adr_of_ins);
 

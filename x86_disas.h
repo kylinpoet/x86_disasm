@@ -130,6 +130,8 @@ bool Da_is_RET (Da* d, uint16_t * out_X);
 
 void Da_free (Da* d);
 
+Da *Da_copy(Da *da);
+
 const char* disas1_ins_code_to_string (Ins_codes ins_code);
 
 #ifdef _DEBUG
