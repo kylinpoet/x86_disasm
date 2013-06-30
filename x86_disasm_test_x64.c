@@ -1,3 +1,12 @@
+/*
+ *
+ * Written by Dennis Yurichev <dennis(a)yurichev.com>, 2013
+ *
+ * This work is licensed under the Creative Commons Attribution-NonCommercial-NoDerivs 3.0 Unported License. 
+ * To view a copy of this license, visit http://creativecommons.org/licenses/by-nc-nd/3.0/.
+ *
+ */
+
 #include "x86_disas.h"
 #include "x86_disas_internals.h"
 #include "x86_disasm_tests.h"
