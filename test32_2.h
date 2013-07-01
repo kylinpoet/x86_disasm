@@ -269,5 +269,6 @@
     disas_test1(Fuzzy_False, (const unsigned char*)"\xD9\xCA", 0x1234, "FXCH ST0, ST2");
     disas_test1(Fuzzy_False, (const unsigned char*)"\xDE\xF9", 0x1234, "FDIVP ST1, ST0");
     disas_test1(Fuzzy_False, (const unsigned char*)"\xDE\xF1", 0x1234, "FDIVRP ST1, ST0");
+    disas_test1(Fuzzy_False, (const unsigned char*)"\xDE\xC9", 0x1234, "FMULP ST1, ST0");
 
 
