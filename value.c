@@ -34,7 +34,7 @@ static uint64_t get_type_mask (enum value_t t)
 void create_Value(enum value_t t, uint64_t v, s_Value *out)
 {
     out->t=t;
-    assert (t!=V_XMM);
+    assert (t!=V_XMM && t!=V_DOUBLE);
     out->u.v=v & get_type_mask(t);
     //L (__FUNCTION__"() rt=0x%p\n", rt);
 };
@@ -46,7 +46,7 @@ void create_Value_of_type (s_Value *t, uint64_t v, s_Value *out)
 
 int get_4th_bit(s_Value *t)
 {
-    assert (t->t!=V_XMM);
+    assert (t->t!=V_XMM && t!=V_DOUBLE);
     return (t->u.v >> 4)&1;
 };
 
@@ -94,14 +94,26 @@ int get_2nd_most_significant_bit(s_Value *i)
 
 uint64_t get_as_QWORD (s_Value *i)
 {
-    assert (i->t!=V_INVALID && i->t!=V_XMM);
+    assert (i->t!=V_INVALID && i->t!=V_XMM && i->t!=V_DOUBLE);
     return i->u.v;
+}
+
+double get_as_double (s_Value *i)
+{
+    assert (i->t==V_DOUBLE);
+    return i->u.d;
 }
 
 void create_XMM_Value(uint8_t * xmm, s_Value *out)
 {
     out->t=V_XMM;
     memcpy (out->u.xmm, xmm, 16);
+}
+
+void create_double_Value(double d, s_Value *out)
+{
+    out->t=V_DOUBLE;
+    out->u.d=d;
 }
 
 uint8_t* get_xmm (s_Value* i)
@@ -112,13 +124,13 @@ uint8_t* get_xmm (s_Value* i)
 
 uint64_t get_as_64(s_Value* i)
 {
-    assert (i->t!=V_INVALID && i->t!=V_XMM);
+    assert (i->t!=V_INVALID && i->t!=V_XMM && i->t!=V_DOUBLE);
     return i->u.v;
 };
 
 uint32_t get_as_32(s_Value* i)
 {
-    assert (i->t!=V_INVALID && i->t!=V_XMM);
+    assert (i->t!=V_INVALID && i->t!=V_XMM && i->t!=V_DOUBLE);
     if (i->u.v>UINT32_MAX)
         fprintf (stderr, "%s() warning: u.v is bigger than uint32_t\n", __FUNCTION__);
     return (uint32_t)(i->u.v & get_type_mask (i->t));
@@ -126,7 +138,7 @@ uint32_t get_as_32(s_Value* i)
 
 uint16_t get_as_16(s_Value* i)
 {
-    assert (i->t!=V_INVALID && i->t!=V_XMM);
+    assert (i->t!=V_INVALID && i->t!=V_XMM && i->t!=V_DOUBLE);
     if (i->u.v>UINT16_MAX)
         fprintf (stderr, "%s() warning: u.v is bigger than uint16_t\n", __FUNCTION__);
     return (uint16_t)(i->u.v & get_type_mask (i->t));
@@ -134,7 +146,7 @@ uint16_t get_as_16(s_Value* i)
 
 uint8_t get_as_8(s_Value* i)
 {
-    assert (i->t!=V_INVALID && i->t!=V_XMM);
+    assert (i->t!=V_INVALID && i->t!=V_XMM && i->t!=V_DOUBLE);
     if (i->u.v>UINT8_MAX)
         fprintf (stderr, "%s() warning: u.v is bigger than uint8_t\n", __FUNCTION__);
     return (uint8_t)(i->u.v & get_type_mask (i->t));
@@ -215,7 +227,7 @@ void create_Value_as_sign_extended(s_Value *i, enum value_t type_of_result, s_Va
 
 void decrement_Value(s_Value *i)
 {
-    assert (i->t!=V_INVALID && i->t!=V_XMM);
+    assert (i->t!=V_INVALID && i->t!=V_XMM && i->t!=V_DOUBLE);
     i->u.v--;
     i->u.v &= get_type_mask(i->t); // trim -1 value (high bits of 64-bit v should be always zero!)
 };
@@ -287,6 +299,7 @@ void Value_to_hex_str (s_Value *val, strbuf* out, bool is_asm)
             strbuf_addf (out, "0x%016I64X", v);
             break;
         case V_XMM:
+        case V_DOUBLE:
             assert (!"not implemented");
             break;
         case V_INVALID:

@@ -8,7 +8,7 @@
  */
 
 // rationale: 
-// нужно передавать как XMM-переменную так и остальные переменные, в тех же местах
+// XMM/FPU values should be passed just like any other values, at the same places
 
 #pragma once
 
@@ -25,7 +25,7 @@ extern "C" {
 union value_u
 {
     uint64_t v;
-    // тут также еще будет поддержка FPU-регистров (возможно)
+    double d;
     uint8_t xmm[16]; // FIXME: ptr
 };
 
@@ -36,6 +36,7 @@ enum value_t
     V_WORD,
     V_DWORD,
     V_QWORD,
+    V_DOUBLE,
     V_XMM
 };
 
@@ -53,11 +54,13 @@ int get_most_significant_bit(s_Value *i);
 int get_2nd_most_significant_bit(s_Value *i);
 uint64_t get_as_QWORD (s_Value *i);
 void create_XMM_Value(uint8_t * xmm, s_Value *out);
+void create_double_Value(double d, s_Value *out);
 uint8_t* get_xmm (s_Value* i);
 uint64_t get_as_64(s_Value* i);
 uint32_t get_as_32(s_Value* i);
 uint16_t get_as_16(s_Value* i);
 uint8_t get_as_8(s_Value* i);
+double get_as_double (s_Value *i);
 int compare_Values (s_Value *i1, s_Value *i2); // -1 - i1<i2, 0 - i1==i2, 1 - i1>i2
 enum value_t bit_width_to_value_t(int i);
 void create_Value_as_sign_extended(s_Value *i, enum value_t type_of_result, s_Value *out);
