@@ -43,4 +43,7 @@
     disas_test1(Fuzzy_False, (const unsigned char*)"\xD8\xC8", 0x123456, "FMUL ST0, ST0");
     disas_test1(Fuzzy_False, (const unsigned char*)"\xD8\xCF", 0x123456, "FMUL ST0, ST7");
     disas_test1(Fuzzy_False, (const unsigned char*)"\x0F\xC9", 0x123456, "BSWAP ECX");
-
+    
+    // might be added? http://blogs.technet.com/b/mmpc/archive/2013/06/24/investigation-of-a-new-undocumented-instruction-trick.aspx?Redirected=true
+    //disas_test1(Fuzzy_False, (const unsigned char*)"\xD9\xD8", 0x123456, "???");
+    //disas_test1(Fuzzy_False, (const unsigned char*)"\xDF\xDF", 0x123456, "???");

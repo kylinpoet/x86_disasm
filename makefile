@@ -1,13 +1,22 @@
 CC=gcc
+
+ifeq ($(BUILD),debug)
+bsuffix=debug
+CPPFLAGS_ADD=-D_DEBUG
+else
+bsuffix=release
+CPPFLAGS_ADD=-O3
+endif
+
 OCTOTHORPE=../octothorpe
-CPPFLAGS=-D_DEBUG -I$(OCTOTHORPE)
+CPPFLAGS=-I$(OCTOTHORPE) $(CPPFLAGS_ADD)
 CFLAGS=-Wall -g -std=gnu99
 SOURCES=value.c x86_disas.c X86_register.c x86_tbl.c
 TEST_SOURCES=x86_disasm_test_x64.c x86_disasm_tests.c
-OUTDIR=$(MSYSTEM)_debug
+OUTDIR=$(MSYSTEM)_$(bsuffix)
 OBJECTS=$(addprefix $(OUTDIR)/,$(SOURCES:.c=.o))
-LIBRARY=$(OUTDIR)/x86_disasmd.a
-OCTOTHORPE_LIBRARY=$(OCTOTHORPE)/$(MSYSTEM)_debug/octothorped.a
+LIBRARY=$(OUTDIR)/x86_disasm.a
+OCTOTHORPE_LIBRARY=$(OCTOTHORPE)/$(MSYSTEM)_$(bsuffix)/octothorpe.a
 
 all: $(OUTDIR) $(LIBRARY)($(OBJECTS)) $(OUTDIR)/x86_disasm_tests.exe
 
