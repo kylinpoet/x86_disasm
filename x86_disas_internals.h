@@ -297,4 +297,4 @@ typedef struct _Ins_definition
 //Ins_definition ins_tbl[];
 //extern Ins_definition ins_tbl[];
 
-
+/* vim: set expandtab ts=4 sw=4 : */

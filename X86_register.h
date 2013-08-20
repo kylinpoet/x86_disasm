@@ -160,3 +160,5 @@ X86_register X86_register_get_32bit_part_of(X86_register r);
 #ifdef  __cplusplus
 }
 #endif
+
+/* vim: set expandtab ts=4 sw=4 : */

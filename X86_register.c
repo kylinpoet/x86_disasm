@@ -340,3 +340,5 @@ bool X86_register_is_XMMx(X86_register r)
         return false;
     };
 };
+
+/* vim: set expandtab ts=4 sw=4 : */

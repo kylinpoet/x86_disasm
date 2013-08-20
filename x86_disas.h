@@ -150,3 +150,5 @@ void print_unused_tbl_entries();
 #ifdef  __cplusplus
 }
 #endif
+
+/* vim: set expandtab ts=4 sw=4 : */

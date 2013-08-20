@@ -22,3 +22,5 @@ Ins_definition ins_tbl[]=
     { 0, 0, 0, OP_ABSENT, OP_ABSENT, OP_ABSENT, NULL, I_INVALID }
 
 };
+
+/* vim: set expandtab ts=4 sw=4 : */

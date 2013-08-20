@@ -2367,3 +2367,4 @@ Da *Da_copy(Da *da)
     return rt;
 };
 
+/* vim: set expandtab ts=4 sw=4 : */

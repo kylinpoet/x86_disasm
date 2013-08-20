@@ -74,3 +74,5 @@ REG get_as_REG(s_Value* i);
 #ifdef  __cplusplus
 }
 #endif
+
+/* vim: set expandtab ts=4 sw=4 : */

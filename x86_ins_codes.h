@@ -315,3 +315,5 @@ typedef enum Ins_codes_t
 
     I_MAX_INS
 } Ins_codes;
+
+/* vim: set expandtab ts=4 sw=4 : */

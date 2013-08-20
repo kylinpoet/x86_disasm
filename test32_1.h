@@ -47,3 +47,5 @@
     // might be added? http://blogs.technet.com/b/mmpc/archive/2013/06/24/investigation-of-a-new-undocumented-instruction-trick.aspx?Redirected=true
     //disas_test1(Fuzzy_False, (const unsigned char*)"\xD9\xD8", 0x123456, "???");
     //disas_test1(Fuzzy_False, (const unsigned char*)"\xDF\xDF", 0x123456, "???");
+
+/* vim: set expandtab ts=4 sw=4 : */

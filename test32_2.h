@@ -271,4 +271,4 @@
     disas_test1(Fuzzy_False, (const unsigned char*)"\xDE\xF1", 0x1234, "FDIVRP ST1, ST0");
     disas_test1(Fuzzy_False, (const unsigned char*)"\xDE\xC9", 0x1234, "FMULP ST1, ST0");
 
-
+/* vim: set expandtab ts=4 sw=4 : */

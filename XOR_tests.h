@@ -1043,3 +1043,5 @@ const char* XOR_SIB_84_test[]=
     "XOR EAX, [ESI+EDI*8-6f6f6f70h]",
     "XOR EAX, [EDI+EDI*8-6f6f6f70h]"
 };
+
+/* vim: set expandtab ts=4 sw=4 : */

@@ -11314,3 +11314,5 @@ disas_test1(Fuzzy_True, (const unsigned char*)"\x4F\x33\x84\xFF\x90\x90\x90\x90"
     //cout << hex << d.op[0].get()->adr_disp << endl;
 #endif
 };
+
+/* vim: set expandtab ts=4 sw=4 : */

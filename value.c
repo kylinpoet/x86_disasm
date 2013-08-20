@@ -316,3 +316,5 @@ REG get_as_REG(s_Value* i)
     return get_as_32(i);
 #endif
 };
+
+/* vim: set expandtab ts=4 sw=4 : */
