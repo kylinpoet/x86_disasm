@@ -270,8 +270,69 @@ const char* X86_register_ToString (X86_register r)
         assert(!"unknown register");
     };
     assert(0);
-    return ""; // make compiler happy
+    return ""; // TMCH
 };
+
+enum obj_type X86_register_get_type (X86_register r)
+{
+    switch (r)
+    {
+    case R_AL: case R_BL: case R_CL: case R_DL:
+    case R_AH: case R_BH: case R_CH: case R_DH:
+    case R_R8L:  case R_R9L:  case R_R10L: case R_R11L: case R_R12L: 
+    case R_R13L: case R_R14L: case R_R15L: 
+    case R_SPL:  case R_BPL:  case R_SIL:  case R_DIL: 
+        return OBJ_BYTE;
+
+    case R_AX: case R_BX: case R_CX: case R_DX: 
+    case R_BP: case R_DI: case R_SI: case R_SP: 
+    case R_FS: case R_GS: case R_SS: case R_ES: case R_DS: case R_CS: 
+    case R_R8W:  case R_R9W:  case R_R10W: case R_R11W: case R_R12W: 
+    case R_R13W: case R_R14W: case R_R15W: 
+        return OBJ_WYDE;
+
+    case R_EAX: case R_EBX: case R_ECX: case R_EDI: case R_EDX: case R_ESI: 
+    case R_ESP: case R_EBP: case R_EIP:
+    case R_R8D:  case R_R9D:  case R_R10D: case R_R11D: case R_R12D: 
+    case R_R13D: case R_R14D: case R_R15D: 
+        return OBJ_TETRABYTE;
+
+    case R_RAX: case R_RBX: case R_RCX: case R_RDI: case R_RDX: case R_RSI:
+    case R_RSP: case R_RBP: case R_RIP:
+    case R_R8:  case R_R9:  case R_R10: case R_R11: case R_R12:
+    case R_R13: case R_R14: case R_R15:
+        return OBJ_OCTABYTE;
+
+    case R_ST0: case R_ST1: case R_ST2: case R_ST3: 
+    case R_ST4: case R_ST5: case R_ST6: case R_ST7: 
+        return OBJ_DOUBLE; // not very precious, but OK.
+
+    case R_XMM0: case R_XMM1: case R_XMM2: case R_XMM3: case R_XMM4: 
+    case R_XMM5: case R_XMM6: case R_XMM7: case R_XMM8: case R_XMM9: 
+    case R_XMM10: case R_XMM11: case R_XMM12: case R_XMM13: case R_XMM14: case R_XMM15:
+        return OBJ_XMM;
+
+    case R_MM0: case R_MM1: case R_MM2: case R_MM3:
+    case R_MM4: case R_MM5: case R_MM6: case R_MM7:
+        assert (!"MMX registers are not handled here");
+        break;
+
+    case R_PF: case R_SF: case R_AF: case R_ZF: 
+    case R_OF: case R_CF: case R_DF: case R_TF: 
+        assert (!"flag registers are not handled here");
+        break;
+
+    case R_ABSENT:
+        assert (!"R_ABSENT isn't handled here");
+        break;
+
+    default: 
+        assert(!"unknown register");
+    };
+    assert(0);
+    return OBJ_NONE; // TMCH
+};
+
 
 bool X86_register_is_ExX_ExI(X86_register r)
 {

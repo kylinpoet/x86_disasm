@@ -9,8 +9,8 @@
 
 #pragma once
 
-#include "value.h"
 #include <windows.h>
+#include "lisp.h"
 
 #ifdef  __cplusplus
 extern "C" {
@@ -148,6 +148,7 @@ X86_register X86_register_from_string (const char* s);
 bool X86_register_is_flag (X86_register r);
 bool X86_register_is_STx (X86_register r);
 const char* X86_register_ToString (X86_register r);
+enum obj_type X86_register_get_type (X86_register r);
 
 bool X86_register_is_ExX_ExI(X86_register r);
 bool X86_register_is_xX_xI(X86_register r);

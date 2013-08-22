@@ -34,7 +34,6 @@ void dump_Ins_definition(Ins_definition *d)
 
 void print_unused_tbl_entries()
 {
-    int tbl_entries_total=0;
     int i;
 
     printf ("%s()\n", __FUNCTION__);
@@ -368,7 +367,7 @@ bool Da_stage1_Da_stage1 (Da_stage1 *p, TrueFalseUndefined x64_code, disas_addre
     if (Da_stage1_load_prefixes_escapes_opcode (p, adr_of_ins, &opc)==false)
     {
         if (dbg_print)
-            printf ("%s(): Da_stage1_load_prefixes_escapes_opcode() failed\n");
+            printf ("%s(): Da_stage1_load_prefixes_escapes_opcode() failed\n", __func__);
         return false;
     };
 
@@ -903,8 +902,6 @@ static X86_register get_8bit_reg (int i, bool replace_xH_to_xPL_and_xIL)
 static void decode_SIB (Da_stage1 *stage1,
         X86_register * adr_base, X86_register * adr_index, unsigned * adr_index_mult, int64_t * adr_disp, uint8_t * adr_disp_width_in_bits, disas_address *adr_disp_pos)
 {
-    int scale_i=1;
-
 #if 0
     cout << strfmt ("%s(): MOD=%02X, SIB_scale=%02X, SIB_index=%02X, SIB_base=%02X, DISP32_loaded=%d\n", __FUNCTION__, MOD, SIB_scale, SIB_index, SIB_base, DISP32_loaded) << endl;
 #endif
@@ -946,10 +943,10 @@ static void decode_SIB (Da_stage1 *stage1,
 
     switch (stage1->SIB.s.scale)
     {
-        case 0: scale_i=1; *adr_index_mult=1; break;
-        case 1: scale_i=2; *adr_index_mult=2; break;
-        case 2: scale_i=4; *adr_index_mult=4; break;
-        case 3: scale_i=8; *adr_index_mult=8; break;
+        case 0: *adr_index_mult=1; break;
+        case 1: *adr_index_mult=2; break;
+        case 2: *adr_index_mult=4; break;
+        case 3: *adr_index_mult=8; break;
         default: assert(0);
     };
 
@@ -1044,7 +1041,7 @@ static Da_op *create_Da_op (op_source op, Da_stage1 *stage1, disas_address ins_a
         case OP_1:
             rt->type=DA_OP_TYPE_VALUE;
             rt->value_width_in_bits=32; // FIXME: тут не всегда 32 бита
-            create_Value(V_DWORD, 1, &rt->u.val.v);
+            obj_tetrabyte2 (1, &rt->u.val._v);
             break;
 
         case OP_AH: rt->type=DA_OP_TYPE_REGISTER; rt->value_width_in_bits=8; rt->u.reg=R_AH; break;
@@ -1105,8 +1102,7 @@ static Da_op *create_Da_op (op_source op, Da_stage1 *stage1, disas_address ins_a
 
                     rt->type=DA_OP_TYPE_VALUE;
                     rt->value_width_in_bits=8;
-                    create_Value (V_BYTE, stage1->IMM8, &rt->u.val.v);
-
+                    obj_byte2 (stage1->IMM8, &rt->u.val._v);
                     break;
 
         case OP_IMM8_SIGN_EXTENDED_TO_IMM32:
@@ -1114,8 +1110,7 @@ static Da_op *create_Da_op (op_source op, Da_stage1 *stage1, disas_address ins_a
 
                     rt->type=DA_OP_TYPE_VALUE;
                     rt->value_width_in_bits=32;
-
-                    create_Value (V_DWORD, (int32_t)(int8_t)stage1->IMM8, &rt->u.val.v);
+                    obj_tetrabyte2 ((int32_t)(int8_t)stage1->IMM8, &rt->u.val._v);
                     break;
 
         case OP_IMM8_SIGN_EXTENDED_TO_IMM64:
@@ -1123,7 +1118,7 @@ static Da_op *create_Da_op (op_source op, Da_stage1 *stage1, disas_address ins_a
 
                     rt->type=DA_OP_TYPE_VALUE;
                     rt->value_width_in_bits=64;
-                    create_Value (V_QWORD, (int64_t)(int8_t)stage1->IMM8, &rt->u.val.v);
+                    obj_octabyte2 ((int64_t)(int8_t)stage1->IMM8, &rt->u.val._v);
                     break;
 
         case OP_IMM16_SIGN_EXTENDED_TO_IMM32:
@@ -1131,7 +1126,7 @@ static Da_op *create_Da_op (op_source op, Da_stage1 *stage1, disas_address ins_a
 
                     rt->type=DA_OP_TYPE_VALUE;
                     rt->value_width_in_bits=32;
-                    create_Value (V_DWORD, (int32_t)(int16_t)stage1->IMM16, &rt->u.val.v);
+                    obj_tetrabyte2 ((int32_t)(int16_t)stage1->IMM16, &rt->u.val._v);
                     break;
 
         case OP_IMM16_SIGN_EXTENDED_TO_IMM64:
@@ -1139,7 +1134,7 @@ static Da_op *create_Da_op (op_source op, Da_stage1 *stage1, disas_address ins_a
 
                     rt->type=DA_OP_TYPE_VALUE;
                     rt->value_width_in_bits=64;
-                    create_Value(V_QWORD, (int64_t)(int16_t)stage1->IMM16, &rt->u.val.v);
+                    obj_octabyte2 ((int64_t)(int16_t)stage1->IMM16, &rt->u.val._v);
                     break;
 
         case OP_IMM32_SIGN_EXTENDED_TO_IMM64:
@@ -1153,12 +1148,12 @@ static Da_op *create_Da_op (op_source op, Da_stage1 *stage1, disas_address ins_a
                     if ((int32_t)stage1->IMM32>=0)
                     {
                         //L ("p1\n");
-                        create_Value (V_QWORD, (uint64_t)stage1->IMM32, &rt->u.val.v);
+                        obj_octabyte2 ((uint64_t)stage1->IMM32, &rt->u.val._v);
                     }
                     else
                     {
                         //L ("p2\n");
-                        create_Value (V_QWORD, (uint64_t)(stage1->IMM32 | 0xFFFFFFFF00000000), &rt->u.val.v);
+                        obj_octabyte2 ((uint64_t)(stage1->IMM32 | 0xFFFFFFFF00000000), &rt->u.val._v);
                     }
                     break;
 
@@ -1211,7 +1206,7 @@ static Da_op *create_Da_op (op_source op, Da_stage1 *stage1, disas_address ins_a
 
                     rt->type=DA_OP_TYPE_VALUE;
                     rt->value_width_in_bits=16;
-                    create_Value (V_WORD, (int16_t)(int8_t)stage1->IMM8, &rt->u.val.v);
+                    obj_wyde2 ((int16_t)(int8_t)stage1->IMM8, &rt->u.val._v);
                     break;
 
 
@@ -1220,7 +1215,7 @@ static Da_op *create_Da_op (op_source op, Da_stage1 *stage1, disas_address ins_a
 
                     rt->type=DA_OP_TYPE_VALUE;
                     rt->value_width_in_bits=32;
-                    create_Value (V_DWORD, (int32_t)(ins_adr + ins_len)+(int8_t)stage1->IMM8, &rt->u.val.v);
+                    obj_tetrabyte2 ((int32_t)(ins_adr + ins_len)+(int8_t)stage1->IMM8, &rt->u.val._v);
                     break;
 
         case OP_IMM8_AS_REL64:
@@ -1228,7 +1223,7 @@ static Da_op *create_Da_op (op_source op, Da_stage1 *stage1, disas_address ins_a
 
                     rt->type=DA_OP_TYPE_VALUE;
                     rt->value_width_in_bits=64;
-                    create_Value (V_QWORD, (int64_t)(ins_adr + ins_len)+(int8_t)stage1->IMM8, &rt->u.val.v);
+                    obj_octabyte2 ((int64_t)(ins_adr + ins_len)+(int8_t)stage1->IMM8, &rt->u.val._v);
                     break;
 
         case OP_IMM16:
@@ -1236,7 +1231,7 @@ static Da_op *create_Da_op (op_source op, Da_stage1 *stage1, disas_address ins_a
 
                     rt->type=DA_OP_TYPE_VALUE;
                     rt->value_width_in_bits=16;
-                    create_Value(V_WORD, stage1->IMM16, &rt->u.val.v);
+                    obj_wyde2 (stage1->IMM16, &rt->u.val._v);
                     break;
 
         case OP_IMM32:
@@ -1244,7 +1239,7 @@ static Da_op *create_Da_op (op_source op, Da_stage1 *stage1, disas_address ins_a
 
                     rt->type=DA_OP_TYPE_VALUE;
                     rt->value_width_in_bits=32;
-                    create_Value (V_DWORD, stage1->IMM32, &rt->u.val.v);
+                    obj_tetrabyte2 (stage1->IMM32, &rt->u.val._v);
                     assert (stage1->IMM32_pos!=0);
                     rt->u.val.value32_pos=stage1->IMM32_pos;
 
@@ -1255,7 +1250,7 @@ static Da_op *create_Da_op (op_source op, Da_stage1 *stage1, disas_address ins_a
 
                     rt->type=DA_OP_TYPE_VALUE;
                     rt->value_width_in_bits=64;
-                    create_Value (V_QWORD, stage1->IMM64, &rt->u.val.v);
+                    obj_octabyte2 (stage1->IMM64, &rt->u.val._v);
                     assert (stage1->IMM64_pos!=0);
                     rt->u.val.value64_pos=stage1->IMM64_pos;
 
@@ -1337,7 +1332,7 @@ static Da_op *create_Da_op (op_source op, Da_stage1 *stage1, disas_address ins_a
                     rt->type=DA_OP_TYPE_VALUE;
                     rt->value_width_in_bits=32;
 
-                    create_Value (V_DWORD, (int32_t)(ins_adr+ins_len)+(int32_t)stage1->IMM32, &rt->u.val.v);
+                    obj_tetrabyte2 ((int32_t)(ins_adr+ins_len)+(int32_t)stage1->IMM32, &rt->u.val._v);
                     assert (stage1->IMM32_pos!=0);
                     rt->u.val.value32_pos=stage1->IMM32_pos;
 
@@ -1349,7 +1344,7 @@ static Da_op *create_Da_op (op_source op, Da_stage1 *stage1, disas_address ins_a
                     rt->type=DA_OP_TYPE_VALUE;
                     rt->value_width_in_bits=64;
 
-                    create_Value (V_QWORD, (int64_t)(ins_adr+ins_len)+(int64_t)((int32_t)stage1->IMM32), &rt->u.val.v);
+                    obj_octabyte2 ((int64_t)(ins_adr+ins_len)+(int64_t)((int32_t)stage1->IMM32), &rt->u.val._v);
                     assert (stage1->IMM32_pos!=0);
                     rt->u.val.value32_pos=stage1->IMM32_pos;
 
@@ -2045,8 +2040,8 @@ void Da_op_ToString (Da_op* op, strbuf* out)
             break;
 
         case DA_OP_TYPE_VALUE:
-
-            Value_to_hex_str (&op->u.val.v, out, true); // asm notation here
+            // asm notation here
+            strbuf_asmhex (out, zero_extend_to_octabyte (&op->u.val._v));
             break;
 
         case DA_OP_TYPE_VALUE_IN_MEMORY:
@@ -2258,7 +2253,7 @@ bool Da_op_equals(Da_op *op1, Da_op *op2)
             return op1->u.reg == op2->u.reg;
 
         case DA_OP_TYPE_VALUE:
-            return compare_Values (&op1->u.val.v, &op2->u.val.v) && (op1->u.val.value32_pos == op2->u.val.value32_pos);
+            return EQL (&op1->u.val._v, &op2->u.val._v) && (op1->u.val.value32_pos == op2->u.val.value32_pos);
 
         case DA_OP_TYPE_VALUE_IN_MEMORY:
             if (op1->u.adr.adr_base != op2->u.adr.adr_base) return false;
@@ -2307,25 +2302,25 @@ bool Da_op::is_EBP_plus_minus_X (address_offset & x) const // x can be negative/
 }
 #endif
 
-// FIXME: REG should be here? or Value?
+// FIXME: REG should be here? or obj?
 bool Da_is_ADD_ESP_X (Da* d, uint32_t * out_X)
 {
     if (d->ins_code!=I_ADD) return false;
     assert (d->_op[0]->type==DA_OP_TYPE_REGISTER);
     if (d->_op[0]->u.reg != R_ESP) return false;
     if (d->_op[1]->type != DA_OP_TYPE_VALUE) return false;
-    *out_X = get_as_32(&d->_op[1]->u.val.v);
+    *out_X = obj_get_as_tetrabyte(&d->_op[1]->u.val._v);
     return true;
 };
 
-// FIXME: REG should be here? or Value?
+// FIXME: REG should be here? or obj?
 bool Da_is_SUB_ESP_X (Da* d, uint32_t * out_X)
 {
     if (d->ins_code!=I_SUB) return false;
     assert (d->_op[0]->type==DA_OP_TYPE_REGISTER);
     if (d->_op[0]->u.reg != R_ESP) return false;
     if (d->_op[1]->type != DA_OP_TYPE_VALUE) return false;
-    *out_X = get_as_32(&d->_op[1]->u.val.v);
+    *out_X = obj_get_as_tetrabyte(&d->_op[1]->u.val._v);
     return true;
 };
 
@@ -2333,7 +2328,7 @@ bool Da_is_RET (Da* d, uint16_t * out_X)
 {
     if (d->ins_code!=I_RETN) return false;
     if (d->_op[0] && d->_op[0]->type==DA_OP_TYPE_VALUE)
-        *out_X = get_as_16(&d->_op[0]->u.val.v);
+        *out_X = obj_get_as_wyde(&d->_op[0]->u.val._v);
     else
         *out_X = 0;
     return true;
@@ -2341,10 +2336,8 @@ bool Da_is_RET (Da* d, uint16_t * out_X)
 
 void Da_op_free(Da_op* op)
 {
-    if (op->type==DA_OP_TYPE_VALUE)
-    {
-        Value_free(&op->u.val.v);
-    };
+    //if (op->type==DA_OP_TYPE_VALUE)
+    //    obj_free(op->u.val._v);
     DFREE(op);
 };
 

@@ -11,7 +11,7 @@
 
 #include <stdint.h>
 #include "X86_register.h"
-#include "value.h"
+#include "lisp.h"
 #include "x86_ins_codes.h"
 #include "logging.h"
 #include "strbuf.h"
@@ -62,7 +62,7 @@ typedef struct _Da_op
         struct
         {
             // type=DA_OP_TYPE_VALUE
-            s_Value v;
+            obj _v;
 
             disas_address value32_pos; // FIXME: here should be offset stored in uint8_t
             disas_address value64_pos; // FIXME: dangling value?
