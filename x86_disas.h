@@ -84,7 +84,7 @@ typedef struct _Da_op
             disas_address adr_disp_pos;
             // shared_ptr<class Symbol> adr_disp_sym; тут будет расширено. будет ли?
         } adr;
-    } u;
+    };
 } Da_op;
 //#pragma pack(pop)
 
