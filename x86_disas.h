@@ -107,7 +107,7 @@ typedef struct _Da
     // но это было бы redundant - эту инфу можно получить из op[]
     Da_op* _op[3];
     // int ops_total; это тут делать не надо, ибо есть operands_total()
-    unsigned len:4; // remember: X86_MAXIMAL_INS_LEN is 15. FIXME: rename to ins_len
+    unsigned ins_len:4; // remember: X86_MAXIMAL_INS_LEN is 15
 } Da;
 //#pragma pack(pop)
 

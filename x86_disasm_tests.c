@@ -32,7 +32,7 @@ void disas_test1(TrueFalseUndefined x64, const unsigned char* code, disas_addres
     {
         printf ("%s(x64=%d, )->[%s]\n", __FUNCTION__, x64, t.buf);
         printf ("must_be=[%s]\n", must_be);
-        for (i=0; i<d->len; i++)
+        for (i=0; i<d->ins_len; i++)
             printf ("code[%d]=0x%02X\n", i, code[i]);
         //debugger_breakpoint();
         exit(0);
@@ -60,7 +60,7 @@ void disas_test2_2op(TrueFalseUndefined x64, const unsigned char* code, disas_ad
         printf ("d.op[1]->value_width_in_bits=%d\n", d->_op[1]->value_width_in_bits);
         printf ("value1_must_be=%d\n", value1_must_be);
         printf ("value2_must_be=%d\n", value2_must_be);
-        for (i=0; i<d->len; i++)
+        for (i=0; i<d->ins_len; i++)
             printf ("code[%d]=0x%02X\n", i, code[i]);
         exit(0);
     };

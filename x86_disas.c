@@ -1858,7 +1858,7 @@ Da* Da_stage1_into_result (Da_stage1 *stage1, disas_address adr_of_ins)
 
     rt=DCALLOC(Da, 1, "Da");
     rt->ins_code=stage1->ins_code;
-    rt->len=stage1->len;
+    rt->ins_len=stage1->len;
     rt->prefix_codes=stage1->PREFIXES;
 
     i=&ins_tbl[stage1->tbl_p];
@@ -1897,9 +1897,9 @@ Da* Da_stage1_into_result (Da_stage1 *stage1, disas_address adr_of_ins)
         new_op2=sign_extend_op_32_to_64 (new_op2);
     };
 
-    if (i->op1!=OP_ABSENT) rt->_op[0]=create_Da_op (new_op1, stage1, adr_of_ins, rt->len);
-    if (i->op2!=OP_ABSENT) rt->_op[1]=create_Da_op (new_op2, stage1, adr_of_ins, rt->len);
-    if (i->op3!=OP_ABSENT) rt->_op[2]=create_Da_op (new_op3, stage1, adr_of_ins, rt->len);
+    if (i->op1!=OP_ABSENT) rt->_op[0]=create_Da_op (new_op1, stage1, adr_of_ins, rt->ins_len);
+    if (i->op2!=OP_ABSENT) rt->_op[1]=create_Da_op (new_op2, stage1, adr_of_ins, rt->ins_len);
+    if (i->op3!=OP_ABSENT) rt->_op[2]=create_Da_op (new_op3, stage1, adr_of_ins, rt->ins_len);
     /*
        printf ("rt->_op[0]=0x%p\n", rt->_op[0]);
        printf ("rt->_op[1]=0x%p\n", rt->_op[1]);
