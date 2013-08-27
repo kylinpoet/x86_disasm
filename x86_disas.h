@@ -43,8 +43,8 @@ typedef enum _Da_coded_result_op_type
     DA_OP_TYPE_VALUE_IN_MEMORY=3
 } Da_coded_result_op_type;
 
-struct _Da_stage1;
-typedef struct _Da_stage1 Da_stage1;
+//2k: struct _Da_stage1;
+//2k: typedef struct _Da_stage1 Da_stage1;
 
 //#pragma pack(push)
 //#pragma pack(1)
@@ -72,7 +72,7 @@ typedef struct _Da_op
             // type=DA_OP_TYPE_VALUE_IN_MEMORY
             X86_register adr_base;
             X86_register adr_index;
-            unsigned adr_index_mult;
+            unsigned adr_index_mult; // FIXME: add :4
             uint8_t adr_disp_width_in_bits;
             int64_t adr_disp; // signed
             unsigned adr_disp_is_absolute:1; // for MOV (opcodes A0, A1...)
@@ -94,20 +94,17 @@ bool Da_op_is_reg(Da_op *op, X86_register reg);
 void Da_op_ToString (Da_op* op, strbuf* out);
 void Da_op_DumpString (fds* s, Da_op* op);
 bool Da_op_is_adr_disp_negative(Da_op *op);
-void Da_op_free(Da_op* op);
 
 //#pragma pack(push)
 //#pragma pack(1)
 typedef struct _Da
 {
+    uint16_t struct_size;
     unsigned prefix_codes;
     Ins_codes ins_code;
-
-    // наверное можно было бы добавить поле вроде "сколько операндов присутствует",
-    // но это было бы redundant - эту инфу можно получить из op[]
-    Da_op* _op[3];
-    // int ops_total; это тут делать не надо, ибо есть operands_total()
+    unsigned ops_total:2;
     unsigned ins_len:4; // remember: X86_MAXIMAL_INS_LEN is 15
+    Da_op op[3];
 } Da;
 //#pragma pack(pop)
 
@@ -118,10 +115,10 @@ typedef bool (*callback_read_oword)(void* param, disas_address adr, uint64_t* ou
 
 // functions to work with Da struct
 
-Da* Da_Da (TrueFalseUndefined x64_code, uint8_t* ptr_to_ins, disas_address adr_of_ins);
-Da* Da_Da_callbacks (TrueFalseUndefined x64_code, disas_address adr_of_ins, 
+bool Da_Da (TrueFalseUndefined x64_code, uint8_t* ptr_to_ins, disas_address adr_of_ins, Da* out);
+bool Da_Da_callbacks (TrueFalseUndefined x64_code, disas_address adr_of_ins, 
         callback_read_byte rb, callback_read_word rw, callback_read_dword rd, callback_read_oword ro, 
-        void *param);
+        void *param, Da* out);
 
 void Da_ToString (Da *d, strbuf *out);
 void Da_DumpString(fds *s, Da *d);
@@ -130,16 +127,11 @@ bool Da_is_PUSH_EBP(Da* d);
 bool Da_ins_is_Jcc (Da* d);
 bool Da_ins_is_FPU (Da* d);
 const char* Da_ins_code_ToString(Da *d);
-int Da_operands_total(Da* d);
 
 // FIXME: 32-bit only?
 bool Da_is_ADD_ESP_X (Da* d, uint32_t * out_X);
 bool Da_is_SUB_ESP_X (Da* d, uint32_t * out_X);
 bool Da_is_RET (Da* d, uint16_t * out_X);
-
-void Da_free (Da* d);
-
-Da *Da_copy(Da *da);
 
 const char* disas1_ins_code_to_string (Ins_codes ins_code);
 

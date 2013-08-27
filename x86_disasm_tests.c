@@ -17,92 +17,96 @@
 void disas_test1(TrueFalseUndefined x64, const unsigned char* code, disas_address adr, const char *must_be)
 {
     strbuf t=STRBUF_INIT;
-    Da* d=Da_Da(x64, (BYTE*)code, adr);
+    Da d;
+    bool b=Da_Da(x64, (BYTE*)code, adr, &d);
     size_t i;
 
     //printf (__FUNCTION__"(x64=%d) begin\n", x64);
-    if (d==NULL)
+    if (b==false)
     {
         printf ("%s(x64=%d, ); must_be=%s\n", __FUNCTION__, x64, must_be);
         printf ("can't disassemble!\n");
         exit(0);
     };
-    Da_ToString(d, &t);
+    Da_ToString(&d, &t);
     if (_stricmp (t.buf, must_be)!=0)
     {
         printf ("%s(x64=%d, )->[%s]\n", __FUNCTION__, x64, t.buf);
         printf ("must_be=[%s]\n", must_be);
-        for (i=0; i<d->ins_len; i++)
+        for (i=0; i<d.ins_len; i++)
             printf ("code[%d]=0x%02X\n", i, code[i]);
         //debugger_breakpoint();
         exit(0);
     };
     strbuf_deinit(&t);
-    Da_free (d);
 };
 
 void disas_test2_2op(TrueFalseUndefined x64, const unsigned char* code, disas_address adr, const char *must_be, int value1_must_be, int value2_must_be)
 {
     strbuf t=STRBUF_INIT;
-    Da* d=Da_Da(x64, (BYTE*)code, adr);
+    Da d;
+    bool b;
     size_t i;
 
+    b=Da_Da(x64, (BYTE*)code, adr, &d);
     //printf (__FUNCTION__"() begin\n");
-    assert(d!=NULL);
-    Da_ToString(d, &t);
+    assert(b);
+    Da_ToString(&d, &t);
     if (_stricmp (t.buf, must_be)!=0
-        || d->_op[0]->value_width_in_bits!=value1_must_be
-        || d->_op[1]->value_width_in_bits!=value2_must_be)
+        || d.op[0].value_width_in_bits!=value1_must_be
+        || d.op[1].value_width_in_bits!=value2_must_be)
     {
         printf ("%s(%s, )->[%s]\n", __FUNCTION__, x64 ? "true" : "false", t.buf);
         printf ("must_be=[%s]\n", must_be);
-        printf ("d.op[0]->value_width_in_bits=%d\n", d->_op[0]->value_width_in_bits);
-        printf ("d.op[1]->value_width_in_bits=%d\n", d->_op[1]->value_width_in_bits);
+        printf ("d.op[0]->value_width_in_bits=%d\n", d.op[0].value_width_in_bits);
+        printf ("d.op[1]->value_width_in_bits=%d\n", d.op[1].value_width_in_bits);
         printf ("value1_must_be=%d\n", value1_must_be);
         printf ("value2_must_be=%d\n", value2_must_be);
-        for (i=0; i<d->ins_len; i++)
+        for (i=0; i<d.ins_len; i++)
             printf ("code[%d]=0x%02X\n", i, code[i]);
         exit(0);
     };
     strbuf_deinit(&t);
-    Da_free(d);
 };
 
 void disas_test2_1op(TrueFalseUndefined x64, const unsigned char* code, disas_address adr, const char *must_be, int value1_must_be)
 {
     strbuf t=STRBUF_INIT;
-    Da* d=Da_Da(x64, (BYTE*)code, adr); 
+    Da d;
+    bool b;
+    
+    b=Da_Da(x64, (BYTE*)code, adr, &d);
 
     //printf (__FUNCTION__"() begin\n");
-    assert (d!=NULL);
-    Da_ToString(d, &t);
-    if (_stricmp(t.buf, must_be)!=0 || d->_op[0]->value_width_in_bits!=value1_must_be)
+    assert (b);
+    Da_ToString(&d, &t);
+    if (_stricmp(t.buf, must_be)!=0 || d.op[0].value_width_in_bits!=value1_must_be)
     {
         printf ("disas_test1(Fuzzy_False, )->[%s]\n", t.buf);
         printf ("must_be=[%s]\n", must_be);
-        printf ("d.op[0]->value_width_in_bits=%d\n", d->_op[0]->value_width_in_bits);
+        printf ("d.op[0]->value_width_in_bits=%d\n", d.op[0].value_width_in_bits);
         printf ("value1_must_be=%d\n", value1_must_be);
         assert(0);
     };
     strbuf_deinit(&t);
-    Da_free (d);
 };
 
 void x86_disas_test_1()
 {
-    Da* d;
+    Da d;
+    bool b;
 
     //printf (__FUNCTION__"() begin\n");
 
 #ifdef _WIN64
-    d=Da_Da(Fuzzy_True, (BYTE*)"\x74\x2F", 0x14000114c);
+    b=Da_Da(Fuzzy_True, (BYTE*)"\x74\x2F", 0x14000114c, &d);
 #else
-    d=Da_Da(Fuzzy_True, (BYTE*)"\x74\x2F", 0x4000114c);
+    b=Da_Da(Fuzzy_True, (BYTE*)"\x74\x2F", 0x4000114c, &d);
 #endif
-    assert (d!=NULL);
-    Da_DumpString(&cur_fds, d);
-    if (d->_op[0]) printf ("op0 value width=%d\n", d->_op[0]->value_width_in_bits);
-    if (d->_op[1]) printf ("op1 value width=%d\n", d->_op[1]->value_width_in_bits);
+    assert (b);
+    Da_DumpString(&cur_fds, &d);
+    if (d.ops_total>=1) printf ("op0 value width=%d\n", d.op[0].value_width_in_bits);
+    if (d.ops_total>=2) printf ("op1 value width=%d\n", d.op[1].value_width_in_bits);
     exit(0);
 };
 
