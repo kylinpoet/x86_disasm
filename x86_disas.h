@@ -82,7 +82,7 @@ typedef struct _Da_op
             unsigned adr_disp_is_not_negative:1;
 
             disas_address adr_disp_pos;
-            // shared_ptr<class Symbol> adr_disp_sym; тут будет расширено
+            // shared_ptr<class Symbol> adr_disp_sym; тут будет расширено. будет ли?
         } adr;
     } u;
 } Da_op;
@@ -107,7 +107,7 @@ typedef struct _Da
     // но это было бы redundant - эту инфу можно получить из op[]
     Da_op* _op[3];
     // int ops_total; это тут делать не надо, ибо есть operands_total()
-    unsigned len:4; // remember: X86_MAXIMAL_INS_LEN is 15
+    unsigned len:4; // remember: X86_MAXIMAL_INS_LEN is 15. FIXME: rename to ins_len
 } Da;
 //#pragma pack(pop)
 
