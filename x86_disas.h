@@ -101,7 +101,7 @@ typedef struct _Da
 {
     uint16_t struct_size;
     unsigned prefix_codes;
-    Ins_codes ins_code;
+    Ins_codes ins_code; // I_INVALID here is case of failure
     unsigned ops_total:2;
     unsigned ins_len:4; // remember: X86_MAXIMAL_INS_LEN is 15
     Da_op op[3];
