@@ -1033,9 +1033,24 @@ static void create_Da_op (op_source op, Da_stage1 *stage1, disas_address ins_adr
             break;
 
         case OP_1:
-            out->type=DA_OP_TYPE_VALUE;
-            out->value_width_in_bits=32; // FIXME: тут не всегда 32 бита
-            obj_tetrabyte2 (1, &out->val._v);
+            if (stage1->ins_code==I_ROL ||
+                    stage1->ins_code==I_ROR ||
+                    stage1->ins_code==I_RCL ||
+                    stage1->ins_code==I_RCR ||
+                    stage1->ins_code==I_SHL ||
+                    stage1->ins_code==I_SHR ||
+                    stage1->ins_code==I_SAR)
+            {
+                out->type=DA_OP_TYPE_VALUE;
+                out->value_width_in_bits=8;
+                obj_byte2 (1, &out->val._v);
+            }
+            else
+            {
+                out->type=DA_OP_TYPE_VALUE;
+                out->value_width_in_bits=32; // FIXME: тут не всегда 32 бита
+                obj_tetrabyte2 (1, &out->val._v);
+            };
             break;
 
         case OP_AH: out->type=DA_OP_TYPE_REGISTER; out->value_width_in_bits=8; out->reg=R_AH; break;

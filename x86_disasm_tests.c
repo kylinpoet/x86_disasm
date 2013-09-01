@@ -7,7 +7,7 @@
  *
  */
 
-#include <assert.h>
+#include "oassert.h"
 #include "stuff.h"
 #include "strbuf.h"
 #include "x86_disas.h"
@@ -50,7 +50,7 @@ void disas_test2_2op(TrueFalseUndefined x64, const unsigned char* code, disas_ad
 
     b=Da_Da(x64, (BYTE*)code, adr, &d);
     //printf (__FUNCTION__"() begin\n");
-    assert(b);
+    oassert(b);
     Da_ToString(&d, &t);
     if (_stricmp (t.buf, must_be)!=0
         || d.op[0].value_width_in_bits!=value1_must_be
@@ -78,7 +78,7 @@ void disas_test2_1op(TrueFalseUndefined x64, const unsigned char* code, disas_ad
     b=Da_Da(x64, (BYTE*)code, adr, &d);
 
     //printf (__FUNCTION__"() begin\n");
-    assert (b);
+    oassert (b);
     Da_ToString(&d, &t);
     if (_stricmp(t.buf, must_be)!=0 || d.op[0].value_width_in_bits!=value1_must_be)
     {
@@ -86,7 +86,7 @@ void disas_test2_1op(TrueFalseUndefined x64, const unsigned char* code, disas_ad
         printf ("must_be=[%s]\n", must_be);
         printf ("d.op[0]->value_width_in_bits=%d\n", d.op[0].value_width_in_bits);
         printf ("value1_must_be=%d\n", value1_must_be);
-        assert(0);
+        oassert(0);
     };
     strbuf_deinit(&t);
 };
@@ -103,7 +103,7 @@ void x86_disas_test_1()
 #else
     b=Da_Da(Fuzzy_True, (BYTE*)"\x74\x2F", 0x4000114c, &d);
 #endif
-    assert (b);
+    oassert (b);
     Da_DumpString(&cur_fds, &d);
     if (d.ops_total>=1) printf ("op0 value width=%d\n", d.op[0].value_width_in_bits);
     if (d.ops_total>=2) printf ("op1 value width=%d\n", d.op[1].value_width_in_bits);
@@ -167,10 +167,26 @@ void x86_disas_test_32()
 // disasm_text_x64.cpp
 void x86_disas_test_64();
 
+void check_SHR()
+{
+    Da d;
+    bool b;
+
+    b=Da_Da(Fuzzy_False, (BYTE*)"\xD1\xEE", 0, &d); // SHR ESI, 1
+    //b=Da_Da(Fuzzy_False, (BYTE*)"\xC1\xEE\x03", 0, &d); // SHR ESI, 3
+    oassert(b);
+    //Da_DumpString(&cur_fds, &d);
+    //printf ("\n");
+    oassert (d.op[1].val._v.t==OBJ_BYTE);
+    //printf ("%d\n", d.op[1].val._v.t);
+};
+
 int main()
 {
     printf ("%s() begin\n", __FUNCTION__);
-    
+
+    check_SHR();
+
     x86_disas_test_32();
     x86_disas_test_64();
 
