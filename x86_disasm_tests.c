@@ -7,6 +7,7 @@
  *
  */
 
+#include "memutils.h"
 #include "oassert.h"
 #include "stuff.h"
 #include "strbuf.h"
@@ -56,7 +57,7 @@ void disas_test2_2op(TrueFalseUndefined x64, const unsigned char* code, disas_ad
         || d.op[0].value_width_in_bits!=value1_must_be
         || d.op[1].value_width_in_bits!=value2_must_be)
     {
-        printf ("%s(%s, )->[%s]\n", __FUNCTION__, x64 ? "true" : "false", t.buf);
+        printf ("%s(%s, )->[%s]\n", __FUNCTION__, bool_to_string(x64), t.buf);
         printf ("must_be=[%s]\n", must_be);
         printf ("d.op[0]->value_width_in_bits=%d\n", d.op[0].value_width_in_bits);
         printf ("d.op[1]->value_width_in_bits=%d\n", d.op[1].value_width_in_bits);
@@ -123,7 +124,7 @@ void x86_disas_test_32()
 
     for (modrm=0; modrm<=0xff; modrm++)
     {
-        memset (buf, 0x90, sizeof(buf));
+        bytefill (buf, sizeof(buf), 0x90);
         buf[0]=0x33;
         buf[1]=(char)modrm;
 
@@ -132,7 +133,7 @@ void x86_disas_test_32()
 
     for (SIB=0; SIB<=0xff; SIB++)
     {
-        memset (buf, 0x90, sizeof(buf));
+        bytefill (buf, sizeof(buf), 0x90);
         buf[0]=0x33;
         buf[1]=0x04; // modrm
         buf[2]=(char)SIB;
@@ -143,7 +144,7 @@ void x86_disas_test_32()
 
     for (SIB=0; SIB<=0xff; SIB++)
     {
-        memset (buf, 0x90, sizeof(buf));
+        bytefill (buf, sizeof(buf), 0x90);
         buf[0]=0x33;
         buf[1]=0x44; // modrm
         buf[2]=(char)SIB;
@@ -154,7 +155,7 @@ void x86_disas_test_32()
 
     for (SIB=0; SIB<=0xff; SIB++)
     {
-        memset (buf, 0x90, sizeof(buf));
+        bytefill (buf, sizeof(buf), 0x90);
         buf[0]=0x33;
         buf[1]=0x84; // modrm
         buf[2]=(char)SIB;
