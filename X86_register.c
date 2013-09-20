@@ -268,6 +268,7 @@ const char* X86_register_ToString (X86_register r)
     case R_ABSENT: return "ABSENT";
     default: 
         oassert(!"unknown register");
+        fatal_error();
     };
 };
 
@@ -313,19 +314,20 @@ enum obj_type X86_register_get_type (X86_register r)
     case R_MM0: case R_MM1: case R_MM2: case R_MM3:
     case R_MM4: case R_MM5: case R_MM6: case R_MM7:
         oassert (!"MMX registers are not handled here");
-        break;
+        fatal_error();
 
     case R_PF: case R_SF: case R_AF: case R_ZF: 
     case R_OF: case R_CF: case R_DF: case R_TF: 
         oassert (!"flag registers are not handled here");
-        break;
+        fatal_error();
 
     case R_ABSENT:
         oassert (!"R_ABSENT isn't handled here");
-        break;
+        fatal_error();
 
     default: 
         oassert(!"unknown register");
+        fatal_error();
     };
 };
 
@@ -356,16 +358,25 @@ X86_register X86_register_get_32bit_part_of(X86_register r)
 {
     switch (r)
     {
-        case R_EAX: case R_AX: case R_AL: case R_AH: return R_EAX;
-        case R_EBX: case R_BX: case R_BL: case R_BH: return R_EBX;
-        case R_ECX: case R_CX: case R_CL: case R_CH: return R_ECX;
-        case R_EDX: case R_DX: case R_DL: case R_DH: return R_EDX;
-        case R_ESI: case R_SI: return R_ESI;
-        case R_EDI: case R_DI: return R_EDI;
-        case R_EBP: case R_BP: return R_EBP;
-        case R_ESP: case R_SP: return R_ESP;
+        case R_EAX: case R_AX: case R_AL: case R_AH: 
+            return R_EAX;
+        case R_EBX: case R_BX: case R_BL: case R_BH: 
+            return R_EBX;
+        case R_ECX: case R_CX: case R_CL: case R_CH: 
+            return R_ECX;
+        case R_EDX: case R_DX: case R_DL: case R_DH: 
+            return R_EDX;
+        case R_ESI: case R_SI: 
+            return R_ESI;
+        case R_EDI: case R_DI: 
+            return R_EDI;
+        case R_EBP: case R_BP: 
+            return R_EBP;
+        case R_ESP: case R_SP: 
+            return R_ESP;
         default:
-                               oassert(0);
+            oassert(0);
+            fatal_error();
     };
 };
 

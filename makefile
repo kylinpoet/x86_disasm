@@ -24,6 +24,7 @@ LIBRARY=$(OUTDIR)/x86_disasm.a
 OCTOTHORPE_LIBRARY=$(OCTOTHORPE)/$(MSYSTEM)_$(bsuffix)/octothorpe.a
 
 all: $(OUTDIR) $(LIBRARY)($(OBJECTS)) $(OUTDIR)/x86_disasm_tests.exe
+	$(OUTDIR)/x86_disasm_tests.exe
 
 $(OUTDIR):
 	mkdir $(OUTDIR)

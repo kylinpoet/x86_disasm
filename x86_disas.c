@@ -788,7 +788,9 @@ static X86_register get_XMM_reg (int i)
         case 13: return R_XMM13;
         case 14: return R_XMM14;
         case 15: return R_XMM15;
-        default: oassert(0);
+        default: 
+                 oassert(0);
+                 fatal_error();
     };
 };
 
@@ -814,6 +816,7 @@ static X86_register get_x32_reg (int i)
         case 15: return R_R15D;
         default: 
                  oassert(0); 
+                 fatal_error();
     };
 };
 
@@ -839,6 +842,7 @@ static X86_register get_x16_reg (int i)
         case 15: return R_R15W;
         default: 
                  oassert(0); 
+                 fatal_error();
     }
 };
 
@@ -856,6 +860,7 @@ static X86_register get_STx_reg (int i)
         case 7: return R_ST7;
         default: 
                 oassert(0); 
+                fatal_error();
     }
 };
 
@@ -892,6 +897,7 @@ static X86_register get_8bit_reg (int i, bool replace_xH_to_xPL_and_xIL)
         case 15: return R_R15L;
         default: 
                  oassert(0); 
+                 fatal_error();
     };
 };
 
@@ -934,7 +940,9 @@ static void decode_SIB (Da_stage1 *stage1,
             else
                 *adr_base=get_x32_reg(stage1->SIB.s.base); 
             break;
-        default: oassert(0); break;
+        default: 
+            oassert(0); 
+            fatal_error();
     };
 
     switch (stage1->SIB.s.scale)
@@ -943,7 +951,9 @@ static void decode_SIB (Da_stage1 *stage1,
         case 1: *adr_index_mult=2; break;
         case 2: *adr_index_mult=4; break;
         case 3: *adr_index_mult=8; break;
-        default: oassert(0);
+        default: 
+                oassert(0);
+                fatal_error();
     };
 
     switch (stage1->SIB.s.index)
@@ -972,7 +982,9 @@ static void decode_SIB (Da_stage1 *stage1,
             else
                 *adr_index=get_x32_reg(stage1->SIB.s.index); 
             break;
-        default: oassert(0); break;
+        default: 
+            oassert(0); 
+            fatal_error();
     };
 
     if (stage1->SIB.s.base==5 && stage1->MODRM.s.MOD==0)
@@ -2239,6 +2251,7 @@ bool Da_op_equals(Da_op *op1, Da_op *op2)
 
         default:
             oassert(0);
+            fatal_error();
     };
 };
 
