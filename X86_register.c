@@ -9,6 +9,7 @@
 
 #include "X86_register.h"
 #include <stdint.h>
+#include <stdio.h>
 #include "oassert.h"
 
 bool X86_register_is_flag (X86_register r)
@@ -84,6 +85,7 @@ X86_register X86_register_from_string (const char* s)
     if (_stricmp (s, "rbp")==0) r=R_RBP;
     if (_stricmp (s, "rsp")==0) r=R_RSP;
     if (_stricmp (s, "rip")==0) r=R_RIP;
+
     if (_stricmp (s, "r8")==0)  r=R_R8;
     if (_stricmp (s, "r9")==0)  r=R_R9;
     if (_stricmp (s, "r10")==0) r=R_R10;
@@ -92,6 +94,48 @@ X86_register X86_register_from_string (const char* s)
     if (_stricmp (s, "r13")==0) r=R_R13;
     if (_stricmp (s, "r14")==0) r=R_R14;
     if (_stricmp (s, "r15")==0) r=R_R15;
+
+    if (_stricmp (s, "r8w")==0)  r=R_R8W;
+    if (_stricmp (s, "r9w")==0)  r=R_R9W;
+    if (_stricmp (s, "r10w")==0) r=R_R10W;
+    if (_stricmp (s, "r11w")==0) r=R_R11W;
+    if (_stricmp (s, "r12w")==0) r=R_R12W;
+    if (_stricmp (s, "r13w")==0) r=R_R13W;
+    if (_stricmp (s, "r14w")==0) r=R_R14W;
+    if (_stricmp (s, "r15w")==0) r=R_R15W;
+
+    if (_stricmp (s, "r8d")==0)  r=R_R8D;
+    if (_stricmp (s, "r9d")==0)  r=R_R9D;
+    if (_stricmp (s, "r10d")==0) r=R_R10D;
+    if (_stricmp (s, "r11d")==0) r=R_R11D;
+    if (_stricmp (s, "r12d")==0) r=R_R12D;
+    if (_stricmp (s, "r13d")==0) r=R_R13D;
+    if (_stricmp (s, "r14d")==0) r=R_R14D;
+    if (_stricmp (s, "r15d")==0) r=R_R15D;
+
+    if (_stricmp (s, "r8l")==0)  r=R_R8L;
+    if (_stricmp (s, "r9l")==0)  r=R_R9L;
+    if (_stricmp (s, "r10l")==0) r=R_R10L;
+    if (_stricmp (s, "r11l")==0) r=R_R11L;
+    if (_stricmp (s, "r12l")==0) r=R_R12L;
+    if (_stricmp (s, "r13l")==0) r=R_R13L;
+    if (_stricmp (s, "r14l")==0) r=R_R14L;
+    if (_stricmp (s, "r15l")==0) r=R_R15L;
+   
+    // IDA style
+    if (_stricmp (s, "r8b")==0)  r=R_R8L;
+    if (_stricmp (s, "r9b")==0)  r=R_R9L;
+    if (_stricmp (s, "r10b")==0) r=R_R10L;
+    if (_stricmp (s, "r11b")==0) r=R_R11L;
+    if (_stricmp (s, "r12b")==0) r=R_R12L;
+    if (_stricmp (s, "r13b")==0) r=R_R13L;
+    if (_stricmp (s, "r14b")==0) r=R_R14L;
+    if (_stricmp (s, "r15b")==0) r=R_R15L;
+    
+    if (_stricmp (s, "spl")==0) r=R_SPL;
+    if (_stricmp (s, "bpl")==0) r=R_BPL;
+    if (_stricmp (s, "sil")==0) r=R_SIL;
+    if (_stricmp (s, "dil")==0) r=R_DIL;
 
     if (_stricmp (s, "st0")==0) r=R_ST0;
     if (_stricmp (s, "st1")==0) r=R_ST1;
@@ -110,6 +154,12 @@ X86_register X86_register_from_string (const char* s)
     if (_stricmp (s, "cf")==0) r=R_CF;
     if (_stricmp (s, "df")==0) r=R_DF;
     if (_stricmp (s, "tf")==0) r=R_TF;
+
+    if (r==R_ABSENT)
+    {
+        printf ("fatal error: register name %s isn't recognised\n", s);
+        fatal_error();
+    };
 
     return r;
 };
