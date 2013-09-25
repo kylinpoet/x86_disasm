@@ -87,7 +87,7 @@ void disas_test2_1op(TrueFalseUndefined x64, const unsigned char* code, disas_ad
         printf ("must_be=[%s]\n", must_be);
         printf ("d.op[0]->value_width_in_bits=%d\n", d.op[0].value_width_in_bits);
         printf ("value1_must_be=%d\n", value1_must_be);
-        oassert(0);
+        oassert(0); fatal_error();
     };
     strbuf_deinit(&t);
 };

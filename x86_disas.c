@@ -764,6 +764,7 @@ static X86_register get_x64_reg (int i)
         case 15: return R_R15;
         default: 
                  oassert(0);
+                 fatal_error();
                  return R_ABSENT;
     };
 };
@@ -1193,7 +1194,7 @@ static void create_Da_op (op_source op, Da_stage1 *stage1, disas_address ins_adr
                     {
                         case OP_IMM64_AS_ABSOLUTE_ADDRESS_PTR_TO_BYTE: out->value_width_in_bits=8; break;
                         case OP_IMM64_AS_ABSOLUTE_ADDRESS_PTR_TO_DWORD: out->value_width_in_bits=32; break;
-                        default: oassert(0);
+                        default: oassert(0); fatal_error();
                     };
                     break;
 
@@ -1218,7 +1219,7 @@ static void create_Da_op (op_source op, Da_stage1 *stage1, disas_address ins_adr
                         case OP_MOFFS32: out->value_width_in_bits=32; break;
                         case OP_MOFFS16: out->value_width_in_bits=16; break;
                         case OP_MOFFS8:  out->value_width_in_bits=8; break;
-                        default: oassert(0);
+                        default: oassert(0); fatal_error();
                     };
                     break;
 
@@ -1405,8 +1406,8 @@ static void create_Da_op (op_source op, Da_stage1 *stage1, disas_address ins_adr
                         case 3: out->reg=R_DS; break;
                         case 4: out->reg=R_FS; break;
                         case 5: out->reg=R_GS; break;
-                        case 6: oassert(0); break; // reserved
-                        case 7: oassert(0); break; // reserved
+                        case 6: oassert(0); fatal_error(); break; // reserved
+                        case 7: oassert(0); fatal_error(); break; // reserved
                     }
                     break;
 
@@ -1470,7 +1471,7 @@ static void create_Da_op (op_source op, Da_stage1 *stage1, disas_address ins_adr
                                                       out->value_width_in_bits=64; break; // 64 bit
                                 case OP_MODRM_RM_XMM: out->value_width_in_bits=128; break; // 128 bit
 
-                                default: oassert(0);
+                                default: oassert(0); fatal_error();
                             };
 
                             if (stage1->PREFIX_67==false)
@@ -1526,7 +1527,7 @@ static void create_Da_op (op_source op, Da_stage1 *stage1, disas_address ins_adr
                                         else
                                             out->adr.adr_base=get_x32_reg(stage1->MODRM.s.RM);
                                         break;
-                                    default: oassert(0); break;
+                                    default: oassert(0); fatal_error(); break;
                                 };
                             } else
                             { // PREFIX_67==true, take 16-bit part of modrm table
@@ -1546,7 +1547,7 @@ static void create_Da_op (op_source op, Da_stage1 *stage1, disas_address ins_adr
 
                                         out->type=DA_OP_TYPE_VALUE_IN_MEMORY; out->value_width_in_bits=32;
                                         break;
-                                    default: oassert(0);
+                                    default: oassert(0); fatal_error();
                                 };
                             };
                             break;
@@ -1565,7 +1566,7 @@ static void create_Da_op (op_source op, Da_stage1 *stage1, disas_address ins_adr
                                 case OP_MODRM_RM_M64FP:
                                                       out->value_width_in_bits=64; break; // 64 bit
                                 case OP_MODRM_RM_XMM: out->value_width_in_bits=128; break; // 128 bit
-                                default: oassert(0);
+                                default: oassert(0); fatal_error();
                             };
 
                             oassert (stage1->PREFIX_67==false); // yet...
@@ -1598,7 +1599,7 @@ static void create_Da_op (op_source op, Da_stage1 *stage1, disas_address ins_adr
                                                                   out->value_width_in_bits=64; break;
                                             case OP_MODRM_RM_XMM: out->value_width_in_bits=128; break;
                                             default: 
-                                                                  oassert(0);
+                                                                  oassert(0); fatal_error();
                                                                   break;
                                         };
                                     };
@@ -1623,7 +1624,7 @@ static void create_Da_op (op_source op, Da_stage1 *stage1, disas_address ins_adr
 
                                     break;
 
-                                default: oassert(0);
+                                default: oassert(0); fatal_error();
                             };
                             break;
 
@@ -1641,7 +1642,7 @@ static void create_Da_op (op_source op, Da_stage1 *stage1, disas_address ins_adr
                                 case OP_MODRM_RM_M64FP:
                                                       out->value_width_in_bits=64; break; // 64 bit
                                 case OP_MODRM_RM_XMM: out->value_width_in_bits=128; break; // 128 bit
-                                default: oassert(0);
+                                default: oassert(0); fatal_error();
                             };
 
                             oassert (stage1->PREFIX_67==false); // yet...
@@ -1674,7 +1675,7 @@ static void create_Da_op (op_source op, Da_stage1 *stage1, disas_address ins_adr
                                             case OP_MODRM_RM_M64FP:
                                                                   out->value_width_in_bits=64; break;
                                             case OP_MODRM_RM_XMM: out->value_width_in_bits=128; break;
-                                            default: oassert(0);
+                                            default: oassert(0); fatal_error();
                                         };
                                     };
 
@@ -1698,7 +1699,7 @@ static void create_Da_op (op_source op, Da_stage1 *stage1, disas_address ins_adr
                                     out->adr.adr_disp_pos=stage1->DISP32_pos;
                                     break;
 
-                                default: oassert(0);
+                                default: oassert(0); fatal_error();
                             };
                             break;
 
@@ -1776,7 +1777,7 @@ static void create_Da_op (op_source op, Da_stage1 *stage1, disas_address ins_adr
                                         case 5: out->reg=R_MM5; break;
                                         case 6: out->reg=R_MM6; break;
                                         case 7: out->reg=R_MM7; break;
-                                        default: oassert(0);
+                                        default: oassert(0); fatal_error();
                                     };
                                     break;
 
@@ -1787,7 +1788,7 @@ static void create_Da_op (op_source op, Da_stage1 *stage1, disas_address ins_adr
                                     out->reg=get_STx_reg (stage1->MODRM.s.RM);
                                     break;
 
-                                default: oassert(0);
+                                default: oassert(0); fatal_error();
                             };
                     };
 
@@ -1795,7 +1796,7 @@ static void create_Da_op (op_source op, Da_stage1 *stage1, disas_address ins_adr
 
         default:
                     L ("unknown op=%d\n", op);
-                    oassert(0);
+                    oassert(0); fatal_error();
     };
 };
 
