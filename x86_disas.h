@@ -114,7 +114,7 @@ typedef bool (*callback_read_dword)(void* param, disas_address adr, uint32_t* ou
 typedef bool (*callback_read_oword)(void* param, disas_address adr, uint64_t* out);
 
 // functions to work with Da struct
-
+// if x64_code==Fuzzy_Undefined, it is determined in runtime...
 bool Da_Da (TrueFalseUndefined x64_code, uint8_t* ptr_to_ins, disas_address adr_of_ins, Da* out);
 bool Da_Da_callbacks (TrueFalseUndefined x64_code, disas_address adr_of_ins, 
         callback_read_byte rb, callback_read_word rw, callback_read_dword rd, callback_read_oword ro, 
