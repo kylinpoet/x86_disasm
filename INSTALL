@@ -1,0 +1,3 @@
+Requires C11 compiler, like GCC >= 4.7.
+
+Usually built in MinGW environment, just run ./make_all.sh
