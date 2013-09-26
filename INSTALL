@@ -1,3 +1,3 @@
 Requires C11 compiler, like GCC >= 4.7.
 
-Usually built in MinGW environment, just run ./make_all.sh
+Usually built in MinGW environment, just run ./make_all.sh (or ./clean_all.sh for opposite effect).
