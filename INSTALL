@@ -1,3 +1,6 @@
 Requires C11 compiler, like GCC >= 4.7.
 
+Libraries required:
+* octothorpe (available at https://github.com/dennis714/octothorpe)
+
 Usually built in MinGW environment, just run ./make_all.sh (or ./clean_all.sh for opposite effect).
