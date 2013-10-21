@@ -341,6 +341,17 @@ void Da_stage1_dump (Da_stage1 *p, disas_address adr, int len)
 #endif
 };
 
+// FIXME may be optimized probably
+void Da_stage1_clear(Da_stage1 *p)
+{
+    p->PREFIXES=0;
+    p->ESCAPE_0F=p->ESCAPE_F2=p->ESCAPE_F3=0;
+    p->PREFIX_66_is_present=p->PREFIX_67=0;
+    p->len=0;
+    p->REX_prefix_seen=0;
+    p->REX_W=p->REX_R=p->REX_X=p->REX_B=0;
+};
+
 // только эта часть дизасма что-то вытягивает из памяти
 bool Da_stage1_Da_stage1 (Da_stage1 *p, TrueFalseUndefined x64_code, disas_address adr_of_ins)
 {
@@ -350,6 +361,7 @@ bool Da_stage1_Da_stage1 (Da_stage1 *p, TrueFalseUndefined x64_code, disas_addre
     //printf (__FUNCTION__"()\n");
 
     p->cur_adr=adr_of_ins;
+    Da_stage1_clear(p);
 
     if (x64_code==Fuzzy_Undefined)
     {
@@ -1004,10 +1016,20 @@ static void decode_SIB (Da_stage1 *stage1,
 #endif
 };
 
+// FIXME: should be optimized...
+void init_adr_in_Da_op (Da_op *out)
+{
+    out->adr.adr_base=0;
+    out->adr.adr_index=0;
+    out->adr.adr_index_mult=1; // default value
+    out->adr.adr_disp=0;
+    out->adr.adr_disp_is_absolute=0;
+    out->adr.adr_disp_is_not_negative=0;
+    out->adr.adr_disp_pos=0;
+};
+
 static void create_Da_op (op_source op, Da_stage1 *stage1, disas_address ins_adr, unsigned ins_len, Da_op *out)
 {
-    out->adr.adr_index_mult=1; // default value
-
     oassert (op!=OP_ABSENT);
 
     switch (op)
@@ -1184,6 +1206,7 @@ static void create_Da_op (op_source op, Da_stage1 *stage1, disas_address ins_adr
 
                     oassert (stage1->IMM64_loaded==true);
                     out->type=DA_OP_TYPE_VALUE_IN_MEMORY;
+                    init_adr_in_Da_op(out);
                     out->adr.adr_disp_width_in_bits=64;
                     out->adr.adr_disp=stage1->IMM64;
                     //L ("stage1.IMM64=0x" PRI_REG_HEX "\n", stage1.IMM64);
@@ -1204,6 +1227,7 @@ static void create_Da_op (op_source op, Da_stage1 *stage1, disas_address ins_adr
 
                     oassert (stage1->PTR_loaded);
                     out->type=DA_OP_TYPE_VALUE_IN_MEMORY;
+                    init_adr_in_Da_op(out);
                     out->adr.adr_disp=stage1->PTR;
                     out->adr.adr_disp_is_absolute=true;
                     oassert (stage1->PTR_pos!=0);
@@ -1282,6 +1306,7 @@ static void create_Da_op (op_source op, Da_stage1 *stage1, disas_address ins_adr
                     oassert (stage1->IMM32_loaded==true);
 
                     out->type=DA_OP_TYPE_VALUE_IN_MEMORY;
+                    init_adr_in_Da_op(out);
                     out->value_width_in_bits=32;
                     out->adr.adr_disp_width_in_bits=32;
                     out->adr.adr_disp=stage1->IMM32;
@@ -1294,6 +1319,7 @@ static void create_Da_op (op_source op, Da_stage1 *stage1, disas_address ins_adr
                     oassert (stage1->IMM64_loaded==true);
 
                     out->type=DA_OP_TYPE_VALUE_IN_MEMORY;
+                    init_adr_in_Da_op(out);
                     out->value_width_in_bits=32;
                     out->adr.adr_disp_width_in_bits=64;
                     out->adr.adr_disp=stage1->IMM64;
@@ -1316,6 +1342,7 @@ static void create_Da_op (op_source op, Da_stage1 *stage1, disas_address ins_adr
                     };
 
                     out->type=DA_OP_TYPE_VALUE_IN_MEMORY;
+                    init_adr_in_Da_op(out);
                     out->value_width_in_bits=16;
                     out->adr.adr_disp_width_in_bits=32;
                     out->adr.adr_disp=stage1->IMM32;
@@ -1328,6 +1355,7 @@ static void create_Da_op (op_source op, Da_stage1 *stage1, disas_address ins_adr
                     oassert (stage1->IMM32_loaded==true);
 
                     out->type=DA_OP_TYPE_VALUE_IN_MEMORY;
+                    init_adr_in_Da_op(out);
                     out->value_width_in_bits=8;
                     out->adr.adr_disp=stage1->IMM32;
                     out->adr.adr_disp_width_in_bits=32;
@@ -1340,6 +1368,7 @@ static void create_Da_op (op_source op, Da_stage1 *stage1, disas_address ins_adr
                     oassert (stage1->IMM64_loaded==true);
 
                     out->type=DA_OP_TYPE_VALUE_IN_MEMORY;
+                    init_adr_in_Da_op(out);
                     out->value_width_in_bits=8;
                     out->adr.adr_disp=stage1->IMM64;
                     out->adr.adr_disp_width_in_bits=64;
@@ -1459,6 +1488,7 @@ static void create_Da_op (op_source op, Da_stage1 *stage1, disas_address ins_adr
                         case 0: // mod=0
 
                             out->type=DA_OP_TYPE_VALUE_IN_MEMORY;
+                            init_adr_in_Da_op(out);
 
                             switch (op)
                             {
@@ -1545,7 +1575,9 @@ static void create_Da_op (op_source op, Da_stage1 *stage1, disas_address ins_adr
                                         oassert (stage1->DISP16_loaded==true);
                                         // на практике это только в случае FS:[..] вроде...
 
-                                        out->type=DA_OP_TYPE_VALUE_IN_MEMORY; out->value_width_in_bits=32;
+                                        out->type=DA_OP_TYPE_VALUE_IN_MEMORY; 
+                                        //init_adr_in_Da_op(out);
+                                        out->value_width_in_bits=32;
                                         break;
                                     default: oassert(0); fatal_error();
                                 };
@@ -1555,6 +1587,7 @@ static void create_Da_op (op_source op, Da_stage1 *stage1, disas_address ins_adr
                         case 1: // mod=1. [reg+disp8]
 
                             out->type=DA_OP_TYPE_VALUE_IN_MEMORY;
+                            init_adr_in_Da_op(out);
 
                             switch (op)
                             {
@@ -1588,6 +1621,7 @@ static void create_Da_op (op_source op, Da_stage1 *stage1, disas_address ins_adr
                                         out->adr.adr_disp=(uint32_t)(int32_t)(int8_t)stage1->DISP8;
 
                                         out->type=DA_OP_TYPE_VALUE_IN_MEMORY;
+                                        //init_adr_in_Da_op(out);
                                         switch (op)
                                         {
                                             case OP_MODRM_RM8:    out->value_width_in_bits=8; break;
@@ -1631,6 +1665,7 @@ static void create_Da_op (op_source op, Da_stage1 *stage1, disas_address ins_adr
                         case 2:  // mod=2. [reg+disp32]
 
                             out->type=DA_OP_TYPE_VALUE_IN_MEMORY;
+                            init_adr_in_Da_op(out);
 
                             switch (op)
                             {
@@ -1665,6 +1700,7 @@ static void create_Da_op (op_source op, Da_stage1 *stage1, disas_address ins_adr
                                         out->adr.adr_disp_pos=stage1->DISP32_pos; // bug was there
 
                                         out->type=DA_OP_TYPE_VALUE_IN_MEMORY;
+                                        //init_adr_in_Da_op(out);
                                         switch (op)
                                         {
                                             case OP_MODRM_RM8:    out->value_width_in_bits=8; break;
@@ -1944,8 +1980,6 @@ void Da_stage1_into_result (Da_stage1 *stage1, disas_address adr_of_ins, Da* out
 bool Da_Da (TrueFalseUndefined x64_code, uint8_t* ptr_to_ins, disas_address adr_of_ins, Da* out)
 {
     Da_stage1 stage1;
-    bzero (&stage1, sizeof(Da_stage1));
-    bzero (out, sizeof(Da)); // this can be optimized, probably...
 
     stage1.use_callbacks=false;
     stage1.cur_ptr=ptr_to_ins;
@@ -1967,8 +2001,6 @@ bool Da_Da_callbacks (TrueFalseUndefined x64_code, disas_address adr_of_ins,
         void *param, Da* out)
 {
     Da_stage1 stage1;
-    bzero (&stage1, sizeof(Da_stage1));
-    bzero (out, sizeof(Da)); // this can be optimized, probably...
 
     stage1.use_callbacks=true;
     stage1.read_byte_fn=rb;
