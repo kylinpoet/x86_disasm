@@ -21,6 +21,26 @@
 
 extern Ins_definition ins_tbl[]; // in x86_tbl.cpp file
 
+static X86_register _64_registers_by_idx[]=
+{ R_RAX, R_RCX, R_RDX, R_RBX, R_RSP, R_RBP, R_RSI, R_RDI, R_R8, R_R9, R_R10, R_R11, R_R12, R_R13, R_R14, R_R15 };
+
+static X86_register XMM_registers_by_idx[]=
+{ R_XMM0, R_XMM1, R_XMM2, R_XMM3, R_XMM4, R_XMM5, R_XMM6, R_XMM7, R_XMM8, R_XMM9, R_XMM10, R_XMM11,
+  R_XMM12, R_XMM13, R_XMM14, R_XMM15 };
+
+static X86_register _32_registers_by_idx[]=
+{ R_EAX, R_ECX, R_EDX, R_EBX, R_ESP, R_EBP, R_ESI, R_EDI, R_R8D, R_R9D, R_R10D, R_R11D, R_R12D, R_R13D,
+  R_R14D, R_R15D, };
+
+static X86_register _16_registers_by_idx[]=
+{ R_AX, R_CX, R_DX, R_BX, R_SP, R_BP, R_SI, R_DI, R_R8W, R_R9W, R_R10W, R_R11W, R_R12W, R_R13W, R_R14W, R_R15W };
+
+static X86_register STx_registers_by_idx[]=
+{ R_ST0, R_ST1, R_ST2, R_ST3, R_ST4, R_ST5, R_ST6, R_ST7, };
+
+static X86_register _8_registers_by_idx[]=
+{ R_AL, R_CL, R_DL, R_BL, R_AH, R_CH, R_DH, R_BH, R_R8L, R_R9L, R_R10L, R_R11L, R_R12L, R_R13L, R_R14L, R_R15L };
+
 static bool dbg_print=false;
 
 #ifdef _DEBUG
@@ -70,7 +90,7 @@ static void precompute_ins_pointers()
     //printf ("ins_tbl=0x%p\n", ins_tbl);
 
     // check ins_tbl[] monotonicity
-    for (i=0, cur_opc=0; ins_tbl[i].ins_code!=I_INVALID; i++)
+    for (i=0, cur_opc=0; ins_tbl[i].ins_code!=I_INVALID; i++, entries_total++)
     {
         d=&ins_tbl[i];
         if (d->opc < cur_opc)
@@ -80,7 +100,6 @@ static void precompute_ins_pointers()
 
         if (d->opc > cur_opc)
             cur_opc=d->opc;
-        entries_total++;
     };
 
     //printf ("ins_tbl[] entries=%d\n", entries_total);
@@ -114,11 +133,7 @@ static void precompute_ins_pointers()
 bool Da_stage1_get_next_byte(Da_stage1* p, uint8_t *out)
 {
     if (p->use_callbacks==false)
-    {
-        p->cur_ptr++;
-        p->cur_adr++;
-        *out=*(p->cur_ptr-1);
-    }
+        p->cur_ptr++, p->cur_adr++, *out=*(p->cur_ptr-1);
     else
     {
         p->cur_adr++;
@@ -394,9 +409,7 @@ bool Da_stage1_Da_stage1 (Da_stage1 *p, TrueFalseUndefined x64_code, disas_addre
         p->new_flags=ins_tbl[p->tbl_p].flags;
 
         if (p->REX_W && IS_SET(p->new_flags, F_REXW_PROMOTE_ALL_32_OPS_TO_64))
-        {
             p->new_flags=promote_32_flags_to_64 (p->new_flags);
-        };
 
         if ((IS_SET(p->new_flags, F_REXW_PRESENT) && p->REX_W==false) ||
                 (IS_SET(p->new_flags, F_REXW_ABSENT) && p->REX_W==true))
@@ -754,129 +767,6 @@ bool Da_stage1_Da_stage1 (Da_stage1 *p, TrueFalseUndefined x64_code, disas_addre
     return false;
 };
 
-static X86_register get_x64_reg (int i)
-{
-    switch (i)
-    {
-        case 0: return R_RAX;
-        case 1: return R_RCX;
-        case 2: return R_RDX;
-        case 3: return R_RBX;
-        case 4: return R_RSP;
-        case 5: return R_RBP;
-        case 6: return R_RSI;
-        case 7: return R_RDI;
-        case 8: return R_R8;
-        case 9: return R_R9;
-        case 10: return R_R10;
-        case 11: return R_R11;
-        case 12: return R_R12;
-        case 13: return R_R13;
-        case 14: return R_R14;
-        case 15: return R_R15;
-        default: 
-                 oassert(0);
-                 fatal_error();
-                 return R_ABSENT;
-    };
-};
-
-static X86_register get_XMM_reg (int i)
-{
-    switch (i)
-    {
-        case 0: return R_XMM0;
-        case 1: return R_XMM1;
-        case 2: return R_XMM2;
-        case 3: return R_XMM3;
-        case 4: return R_XMM4;
-        case 5: return R_XMM5;
-        case 6: return R_XMM6;
-        case 7: return R_XMM7;
-        case 8: return R_XMM8;
-        case 9: return R_XMM9;
-        case 10: return R_XMM10;
-        case 11: return R_XMM11;
-        case 12: return R_XMM12;
-        case 13: return R_XMM13;
-        case 14: return R_XMM14;
-        case 15: return R_XMM15;
-        default: 
-                 oassert(0);
-                 fatal_error();
-    };
-};
-
-static X86_register get_x32_reg (int i)
-{
-    switch (i)
-    {
-        case 0: return R_EAX;
-        case 1: return R_ECX;
-        case 2: return R_EDX;
-        case 3: return R_EBX;
-        case 4: return R_ESP;
-        case 5: return R_EBP;
-        case 6: return R_ESI;
-        case 7: return R_EDI;
-        case 8: return R_R8D;
-        case 9: return R_R9D;
-        case 10: return R_R10D;
-        case 11: return R_R11D;
-        case 12: return R_R12D;
-        case 13: return R_R13D;
-        case 14: return R_R14D;
-        case 15: return R_R15D;
-        default: 
-                 oassert(0); 
-                 fatal_error();
-    };
-};
-
-static X86_register get_x16_reg (int i)
-{
-    switch (i)
-    {
-        case 0: return R_AX;
-        case 1: return R_CX;
-        case 2: return R_DX;
-        case 3: return R_BX;
-        case 4: return R_SP;
-        case 5: return R_BP;
-        case 6: return R_SI;
-        case 7: return R_DI;
-        case 8: return R_R8W;
-        case 9: return R_R9W;
-        case 10: return R_R10W;
-        case 11: return R_R11W;
-        case 12: return R_R12W;
-        case 13: return R_R13W;
-        case 14: return R_R14W;
-        case 15: return R_R15W;
-        default: 
-                 oassert(0); 
-                 fatal_error();
-    }
-};
-
-static X86_register get_STx_reg (int i)
-{
-    switch (i)
-    {
-        case 0: return R_ST0;
-        case 1: return R_ST1;
-        case 2: return R_ST2;
-        case 3: return R_ST3;
-        case 4: return R_ST4;
-        case 5: return R_ST5;
-        case 6: return R_ST6;
-        case 7: return R_ST7;
-        default: 
-                oassert(0); 
-                fatal_error();
-    }
-};
-
 static X86_register get_8bit_reg (int i, bool replace_xH_to_xPL_and_xIL)
 {
     if (replace_xH_to_xPL_and_xIL)
@@ -890,28 +780,9 @@ static X86_register get_8bit_reg (int i, bool replace_xH_to_xPL_and_xIL)
         };
     }
 
-    switch (i)
-    {
-        case 0: return R_AL;
-        case 1: return R_CL;
-        case 2: return R_DL;
-        case 3: return R_BL;
-        case 4: return R_AH;
-        case 5: return R_CH;
-        case 6: return R_DH;
-        case 7: return R_BH;
-        case 8: return R_R8L;
-        case 9: return R_R9L;
-        case 10: return R_R10L;
-        case 11: return R_R11L;
-        case 12: return R_R12L;
-        case 13: return R_R13L;
-        case 14: return R_R14L;
-        case 15: return R_R15L;
-        default: 
-                 oassert(0); 
-                 fatal_error();
-    };
+    if (i>15)
+        fatal_error();
+    return _8_registers_by_idx[i];
 };
 
 static void decode_SIB (Da_stage1 *stage1,
@@ -941,17 +812,13 @@ static void decode_SIB (Da_stage1 *stage1,
                 *adr_base=R_ABSENT;
             };
             break;
-        case 0: 
-        case 1:
-        case 2:
-        case 3:
-        case 4:
+        case 0 ... 4: 
         case 6:
         case 7: 
             if (stage1->x64)
-                *adr_base=get_x64_reg((stage1->REX_B ? 0x8 : 0) | stage1->SIB.s.base); 
+                *adr_base=_64_registers_by_idx[(stage1->REX_B ? 0x8 : 0) | stage1->SIB.s.base]; 
             else
-                *adr_base=get_x32_reg(stage1->SIB.s.base); 
+                *adr_base=_32_registers_by_idx[stage1->SIB.s.base];
             break;
         default: 
             oassert(0); 
@@ -978,22 +845,17 @@ static void decode_SIB (Da_stage1 *stage1,
                 if (tmp==4)
                     *adr_index=R_ABSENT;
                 else
-                    *adr_index=get_x64_reg(tmp);
+                    *adr_index=_64_registers_by_idx[tmp];
             }
             else
                 *adr_index=R_ABSENT;
             break;
-        case 0: 
-        case 1: 
-        case 2: 
-        case 3: 
-        case 5: 
-        case 6: 
-        case 7: 
+        case 0 ... 3: 
+        case 5 ... 7:
             if (stage1->x64)
-                *adr_index=get_x64_reg((stage1->REX_X ? 0x8 : 0) | stage1->SIB.s.index); 
+                *adr_index=_64_registers_by_idx[(stage1->REX_X ? 0x8 : 0) | stage1->SIB.s.index];
             else
-                *adr_index=get_x32_reg(stage1->SIB.s.index); 
+                *adr_index=_32_registers_by_idx[stage1->SIB.s.index];
             break;
         default: 
             oassert(0); 
@@ -1037,7 +899,7 @@ static void create_Da_op (op_source op, Da_stage1 *stage1, disas_address ins_adr
         case OP_REG64_FROM_LOWEST_PART_OF_1ST_BYTE:
             out->type=DA_OP_TYPE_REGISTER; 
             out->value_width_in_bits=64;
-            out->reg=get_x64_reg ((stage1->REX_B ? 8 : 0) | stage1->REG_FROM_LOWEST_PART_OF_1ST_BYTE);
+            out->reg=_64_registers_by_idx[(stage1->REX_B ? 8 : 0) | stage1->REG_FROM_LOWEST_PART_OF_1ST_BYTE];
             break;
 
         case OP_REG32_FROM_LOWEST_PART_OF_1ST_BYTE:
@@ -1046,15 +908,15 @@ static void create_Da_op (op_source op, Da_stage1 *stage1, disas_address ins_adr
             if (stage1->PREFIX_66_is_present)
             {
                 out->value_width_in_bits=16;
-                out->reg=get_x16_reg (stage1->REG_FROM_LOWEST_PART_OF_1ST_BYTE);
+                out->reg=_16_registers_by_idx[stage1->REG_FROM_LOWEST_PART_OF_1ST_BYTE];
             }
             else
             {
                 out->value_width_in_bits=32;
                 if (stage1->x64)
-                    out->reg=get_x32_reg ((stage1->REX_B ? 8 : 0) | stage1->REG_FROM_LOWEST_PART_OF_1ST_BYTE);
+                    out->reg=_32_registers_by_idx[(stage1->REX_B ? 8 : 0) | stage1->REG_FROM_LOWEST_PART_OF_1ST_BYTE];
                 else
-                    out->reg=get_x32_reg (stage1->REG_FROM_LOWEST_PART_OF_1ST_BYTE);
+                    out->reg=_32_registers_by_idx[stage1->REG_FROM_LOWEST_PART_OF_1ST_BYTE];
             };
             break;
 
@@ -1405,23 +1267,23 @@ static void create_Da_op (op_source op, Da_stage1 *stage1, disas_address ins_adr
                     oassert (stage1->MODRM_loaded==true);
                     out->type=DA_OP_TYPE_REGISTER; 
                     out->value_width_in_bits=32;
-                    out->reg=get_x32_reg ((stage1->REX_R ? 8 : 0) | stage1->MODRM.s.REG);
+                    out->reg=_32_registers_by_idx[(stage1->REX_R ? 8 : 0) | stage1->MODRM.s.REG];
                     break;
 
         case OP_MODRM_R64:
                     oassert (stage1->MODRM_loaded==true);
                     out->type=DA_OP_TYPE_REGISTER; 
                     out->value_width_in_bits=64;
-                    out->reg=get_x64_reg ((stage1->REX_R ? 8 : 0) | stage1->MODRM.s.REG);
+                    out->reg=_64_registers_by_idx[(stage1->REX_R ? 8 : 0) | stage1->MODRM.s.REG];
                     break;
 
         case OP_MODRM_R16:
                     oassert (stage1->MODRM_loaded==true);
                     out->type=DA_OP_TYPE_REGISTER; out->value_width_in_bits=16; 
                     if (stage1->REX_prefix_seen)
-                        out->reg=get_x16_reg ((stage1->REX_R ? 8 : 0) | stage1->MODRM.s.REG);
+                        out->reg=_16_registers_by_idx[(stage1->REX_R ? 8 : 0) | stage1->MODRM.s.REG];
                     else
-                        out->reg=get_x16_reg (stage1->MODRM.s.REG);
+                        out->reg=_16_registers_by_idx[stage1->MODRM.s.REG];
                     break;
 
         case OP_MODRM_SREG:
@@ -1454,9 +1316,9 @@ static void create_Da_op (op_source op, Da_stage1 *stage1, disas_address ins_adr
                     out->type=DA_OP_TYPE_REGISTER; 
                     out->value_width_in_bits=128;
                     if (stage1->REX_prefix_seen)
-                        out->reg=get_XMM_reg ((stage1->REX_R ? 8 : 0) | stage1->MODRM.s.REG);
+                        out->reg=XMM_registers_by_idx[(stage1->REX_R ? 8 : 0) | stage1->MODRM.s.REG];
                     else
-                        out->reg=get_XMM_reg (stage1->MODRM.s.REG);
+                        out->reg=XMM_registers_by_idx[stage1->MODRM.s.REG];
                     break;
 
         case OP_MODRM_R_MM:
@@ -1545,17 +1407,13 @@ static void create_Da_op (op_source op, Da_stage1 *stage1, disas_address ins_adr
                                         out->adr.adr_disp_is_not_negative=true;
                                         break; // EA is just disp32
 
-                                    case 0:
-                                    case 1:
-                                    case 2:
-                                    case 3:
-                                    case 6: 
-                                    case 7: 
+                                    case 0 ... 3:
+                                    case 6 ... 7: 
                                         //if (op==OP_MODRM_RM64)
                                         if (stage1->x64)
-                                            out->adr.adr_base=get_x64_reg((stage1->REX_B ? 0x8 : 0) | stage1->MODRM.s.RM);
+                                            out->adr.adr_base=_64_registers_by_idx[(stage1->REX_B ? 0x8 : 0) | stage1->MODRM.s.RM];
                                         else
-                                            out->adr.adr_base=get_x32_reg(stage1->MODRM.s.RM);
+                                            out->adr.adr_base=_32_registers_by_idx[stage1->MODRM.s.RM];
                                         break;
                                     default: oassert(0); fatal_error(); break;
                                 };
@@ -1563,12 +1421,7 @@ static void create_Da_op (op_source op, Da_stage1 *stage1, disas_address ins_adr
                             { // PREFIX_67==true, take 16-bit part of modrm table
                                 switch (stage1->MODRM.s.RM)
                                 {
-                                    case 0:
-                                    case 1:
-                                    case 2:
-                                    case 3:
-                                    case 4:
-                                    case 5:  
+                                    case 0 ... 5:
                                     case 7:  
                                         oassert (!"PREFIX_67=true, we don't process 16-bit part of modrm table (yet)");
                                     case 6: // take disp16
@@ -1639,19 +1492,14 @@ static void create_Da_op (op_source op, Da_stage1 *stage1, disas_address ins_adr
                                     };
                                     break;
 
-                                case 0:  
-                                case 1:  
-                                case 2:  
-                                case 3:  
-                                case 5:  
-                                case 6:  
-                                case 7:  
+                                case 0 ... 3:
+                                case 5 ... 7:
                                     oassert (stage1->DISP8_loaded==true);
                                     //if (op==OP_MODRM_RM64)
                                     if (stage1->x64)
-                                        out->adr.adr_base=get_x64_reg((stage1->REX_B ? 8 : 0) | stage1->MODRM.s.RM);
+                                        out->adr.adr_base=_64_registers_by_idx[(stage1->REX_B ? 8 : 0) | stage1->MODRM.s.RM];
                                     else
-                                        out->adr.adr_base=get_x32_reg(stage1->MODRM.s.RM);
+                                        out->adr.adr_base=_32_registers_by_idx[stage1->MODRM.s.RM];
 
                                     out->adr.adr_disp_width_in_bits=32;
                                     out->adr.adr_disp=(uint32_t)(int32_t)(int8_t)stage1->DISP8;
@@ -1717,18 +1565,13 @@ static void create_Da_op (op_source op, Da_stage1 *stage1, disas_address ins_adr
 
                                     break;
 
-                                case 0:  
-                                case 1:  
-                                case 2:  
-                                case 3:  
-                                case 5:  
-                                case 6:  
-                                case 7:  
+                                case 0 ... 3:
+                                case 5 ... 7:
                                     oassert (stage1->DISP32_loaded==true);
                                     if (stage1->x64)
-                                        out->adr.adr_base=get_x64_reg((stage1->REX_B ? 8 : 0) | stage1->MODRM.s.RM);
+                                        out->adr.adr_base=_64_registers_by_idx[(stage1->REX_B ? 8 : 0) | stage1->MODRM.s.RM];
                                     else
-                                        out->adr.adr_base=get_x32_reg(stage1->MODRM.s.RM);
+                                        out->adr.adr_base=_32_registers_by_idx[stage1->MODRM.s.RM];
                                     out->adr.adr_disp_width_in_bits=32;
                                     out->adr.adr_disp=stage1->DISP32;
                                     oassert (stage1->DISP32_pos!=0);
@@ -1745,7 +1588,7 @@ static void create_Da_op (op_source op, Da_stage1 *stage1, disas_address ins_adr
                             {
                                 case OP_MODRM_RM64:
                                     out->type=DA_OP_TYPE_REGISTER; out->value_width_in_bits=64;
-                                    out->reg=get_x64_reg((stage1->REX_B ? 0x8 : 0) | stage1->MODRM.s.RM);
+                                    out->reg=_64_registers_by_idx[(stage1->REX_B ? 0x8 : 0) | stage1->MODRM.s.RM];
                                     break;
 
                                 case OP_MODRM_RM32:
@@ -1755,17 +1598,17 @@ static void create_Da_op (op_source op, Da_stage1 *stage1, disas_address ins_adr
                                     if (IS_SET(stage1->new_flags, F_WHEN_MOD3_TREAT_RM_AS_STx))
                                     {
                                         out->value_width_in_bits=80;
-                                        out->reg=get_STx_reg (stage1->MODRM.s.RM);
+                                        out->reg=STx_registers_by_idx [stage1->MODRM.s.RM];
                                     }
                                     else
                                     {
                                         out->value_width_in_bits=32;
                                         //if (stage1->REX_prefix_seen)
                                         if (stage1->x64)
-                                            out->reg=get_x32_reg((stage1->REX_B ? 0x8 : 0) | stage1->MODRM.s.RM);
-                                        //reg=get_x64_reg((stage1->REX_B ? 0x8 : 0) | stage1->MODRM_RM);
+                                            out->reg=_32_registers_by_idx[(stage1->REX_B ? 0x8 : 0) | stage1->MODRM.s.RM];
+                                        //reg=_64_registers_by_idx{(stage1->REX_B ? 0x8 : 0) | stage1->MODRM_RM];
                                         else
-                                            out->reg=get_x32_reg(stage1->MODRM.s.RM);
+                                            out->reg=_32_registers_by_idx[stage1->MODRM.s.RM];
                                     };
                                     break;
 
@@ -1774,9 +1617,9 @@ static void create_Da_op (op_source op, Da_stage1 *stage1, disas_address ins_adr
                                     out->type=DA_OP_TYPE_REGISTER; out->value_width_in_bits=16;
 
                                     if (stage1->x64)
-                                        out->reg=get_x16_reg ((stage1->REX_B ? 0x8 : 0) | stage1->MODRM.s.RM);
+                                        out->reg=_16_registers_by_idx[(stage1->REX_B ? 0x8 : 0) | stage1->MODRM.s.RM];
                                     else
-                                        out->reg=get_x16_reg (stage1->MODRM.s.RM);
+                                        out->reg=_16_registers_by_idx[stage1->MODRM.s.RM];
 
                                     break;
 
@@ -1794,9 +1637,9 @@ static void create_Da_op (op_source op, Da_stage1 *stage1, disas_address ins_adr
                                     out->type=DA_OP_TYPE_REGISTER; out->value_width_in_bits=128;
 
                                     if (stage1->REX_prefix_seen)
-                                        out->reg=get_XMM_reg ((stage1->REX_B ? 8 : 0) | stage1->MODRM.s.RM);
+                                        out->reg=XMM_registers_by_idx[(stage1->REX_B ? 8 : 0) | stage1->MODRM.s.RM];
                                     else
-                                        out->reg=get_XMM_reg (stage1->MODRM.s.RM);
+                                        out->reg=XMM_registers_by_idx[stage1->MODRM.s.RM];
                                     break;
 
                                 case OP_MODRM_RM_MM:
@@ -1821,7 +1664,7 @@ static void create_Da_op (op_source op, Da_stage1 *stage1, disas_address ins_adr
 
                                     out->type=DA_OP_TYPE_REGISTER; out->value_width_in_bits=80;
 
-                                    out->reg=get_STx_reg (stage1->MODRM.s.RM);
+                                    out->reg=STx_registers_by_idx[stage1->MODRM.s.RM];
                                     break;
 
                                 default: oassert(0); fatal_error();
@@ -2139,6 +1982,7 @@ void Da_op_DumpString (fds *s, Da_op* op)
 
 bool Da_ins_is_Jcc (Da* d)
 {
+    // FIXME: there might be a flag in tbl...
     switch (d->ins_code)
     {
         case I_JA:
@@ -2168,7 +2012,7 @@ const char* disas1_ins_code_to_string (Ins_codes ins_code)
 {
     int i;
 
-    if (ins_code==I_NOP)
+    if (ins_code==I_NOP) // there are no NOP in tbl...
         return "NOP";
 
     for (i=0;;i++)
@@ -2211,6 +2055,7 @@ void Da_DumpString(fds* s, Da *d)
 
 bool Da_ins_is_FPU (Da *d)
 {
+    // FIXME: there might be a flag in tbl...
     switch (d->ins_code)
     {
         case I_FLD1:

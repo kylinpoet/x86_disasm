@@ -172,6 +172,7 @@ const char* X86_register_ToString (X86_register r)
 
     switch (r)
     {
+    // FIXME: make array of strings
     case R_AL: return "AL";
     case R_BL: return "BL";
     case R_CL: return "CL";
