@@ -18,6 +18,7 @@
 #include "strbuf.h"
 #include "stuff.h"
 #include "fmt_utils.h"
+#include "memutils.h"
 
 extern Ins_definition ins_tbl[]; // in x86_tbl.cpp file
 
@@ -930,13 +931,8 @@ static void create_Da_op (op_source op, Da_stage1 *stage1, disas_address ins_adr
             break;
 
         case OP_1:
-            if (stage1->ins_code==I_ROL ||
-                    stage1->ins_code==I_ROR ||
-                    stage1->ins_code==I_RCL ||
-                    stage1->ins_code==I_RCR ||
-                    stage1->ins_code==I_SHL ||
-                    stage1->ins_code==I_SHR ||
-                    stage1->ins_code==I_SAR)
+            if (is_element_in_array(stage1->ins_code, 
+                        (unsigned[]){ I_ROL, I_ROR, I_RCL, I_RCR, I_SHL, I_SHR, I_SAR }, 7))
             {
                 out->type=DA_OP_TYPE_VALUE;
                 out->value_width_in_bits=8;
