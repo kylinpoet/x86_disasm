@@ -931,8 +931,7 @@ static void create_Da_op (op_source op, Da_stage1 *stage1, disas_address ins_adr
             break;
 
         case OP_1:
-            if (is_element_in_array(stage1->ins_code, 
-                        (unsigned[]){ I_ROL, I_ROR, I_RCL, I_RCR, I_SHL, I_SHR, I_SAR }, 7))
+            if (value_in(stage1->ins_code, I_ROL, I_ROR, I_RCL, I_RCR, I_SHL, I_SHR, I_SAR))
             {
                 out->type=DA_OP_TYPE_VALUE;
                 out->value_width_in_bits=8;

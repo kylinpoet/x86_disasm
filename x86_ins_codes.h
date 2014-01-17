@@ -12,7 +12,7 @@
 typedef enum Ins_codes_t
 {
     I_INVALID=0,
-    
+
     I_AAA,
     I_AAD,
     I_AAM,
@@ -229,6 +229,7 @@ typedef enum Ins_codes_t
     I_PSUBD,
     I_PSUBQ,
     I_PUNPCKLDQ,
+    I_PUNPCKLQDQ,
     I_PUSH,
     I_PUSHA,
     I_PUSHFD,

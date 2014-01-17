@@ -11303,6 +11303,8 @@ disas_test1(Fuzzy_True, (const unsigned char*)"\x4F\x33\x84\xFD\x90\x90\x90\x90"
 disas_test1(Fuzzy_True, (const unsigned char*)"\x4F\x33\x84\xFE\x90\x90\x90\x90", 0x12fda, "XOR R8, [R14+R15*8-6f6f6f70h]");
 disas_test1(Fuzzy_True, (const unsigned char*)"\x4F\x33\x84\xFF\x90\x90\x90\x90", 0x12fed, "XOR R8, [R15+R15*8-6f6f6f70h]");
 
+disas_test1(Fuzzy_True, (const unsigned char*)"\x66\x0F\x6C\xC0", 0x12fed, "PUNPCKLQDQ XMM0, XMM0");
+
 #if 0
     Da d(Fuzzy_True, (BYTE*)"\x40\xA0\x90\x90\x90\x90\x90\x90\x90\x90", 0x40A2CF);
     cout << d.ToString() << endl;

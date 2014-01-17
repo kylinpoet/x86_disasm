@@ -9,6 +9,7 @@
 
 #include "memutils.h"
 #include "oassert.h"
+#include "ostrings.h"
 #include "stuff.h"
 #include "strbuf.h"
 #include "x86_disas.h"
