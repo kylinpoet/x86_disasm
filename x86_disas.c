@@ -1822,6 +1822,7 @@ bool Da_Da (TrueFalseUndefined x64_code, uint8_t* ptr_to_ins, disas_address adr_
     stage1.use_callbacks=false;
     stage1.cur_ptr=ptr_to_ins;
 
+    out->ins_code=I_INVALID;
     if (Da_stage1_Da_stage1(&stage1, x64_code, adr_of_ins)==false)
     {
 #ifdef _DEBUG
@@ -1847,6 +1848,7 @@ bool Da_Da_callbacks (TrueFalseUndefined x64_code, disas_address adr_of_ins,
     stage1.read_oword_fn=ro;
     stage1.callback_param=param;
 
+    out->ins_code=I_INVALID;
     if (Da_stage1_Da_stage1(&stage1, x64_code, adr_of_ins)==false)
         return false;
     Da_stage1_into_result (&stage1, adr_of_ins, out);
