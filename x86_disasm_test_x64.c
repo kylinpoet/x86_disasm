@@ -16,9 +16,29 @@ void x86_disas_test_64()
     //printf (__FUNCTION__"() begin\n");
 
     //disas_test1(Fuzzy_True, (const unsigned char*)"\x48\x8D\x68\xB8", 0x8855, "?"); // checked in IDA
+
+    // lea rcx,[00000001405BD388] 
+    //disas_test1(Fuzzy_True, (const unsigned char*)"\x48\x8D\x0D\x9D\x12\x56\x00", 0x14005C0E4, "?");
+
+    disas_test1(Fuzzy_True, (const unsigned char*)"\x66\x0F\xD1\xD8", 3, "PSRLW XMM3, XMM0");
+    disas_test1(Fuzzy_True, (const unsigned char*)"\x66\x0F\xEA\xD9", 3, "PMINSW XMM3, XMM1");
+    disas_test1(Fuzzy_True, (const unsigned char*)"\x66\x0F\xEE\xD8", 3, "PMAXSW XMM3, XMM0");
+    disas_test1(Fuzzy_True, (const unsigned char*)"\x66\x0F\xF9\xCE", 3, "PSUBW XMM1, XMM6");
+    disas_test1(Fuzzy_True, (const unsigned char*)"\x66\x0F\x61\xE4", 3, "PUNPCKLWD XMM4, XMM4");
+    disas_test1(Fuzzy_True, (const unsigned char*)"\xF3\x0F\x5C\xD7", 3, "SUBSS XMM2, XMM7");
+    disas_test1(Fuzzy_True, (const unsigned char*)"\xF3\x42\x0F\x11\x74\x1D\x98", 3, "MOVSS [RBP+R11-68h], XMM6");
+    disas_test1(Fuzzy_True, (const unsigned char*)"\xF3\x0F\x5E\xF8", 3, "DIVSS XMM7, XMM0");
+    disas_test1(Fuzzy_True, (const unsigned char*)"\x0F\x5B\xC0", 3, "CVTDQ2PS XMM0, XMM0");
+    disas_test1(Fuzzy_True, (const unsigned char*)"\x0F\x5A\xC6", 3, "CVTPS2PD XMM0, XMM6");
+    disas_test1(Fuzzy_True, (const unsigned char*)"\x0F\x14\xF6", 3, "UNPCKLPS XMM6, XMM6");
+    disas_test1(Fuzzy_True, (const unsigned char*)"\xF3\x0F\x58\xF1", 3, "ADDSS XMM6, XMM1");
+    disas_test1(Fuzzy_True, (const unsigned char*)"\xF3\x0F\x10\x05\x91\x08\xBE\x00", 3, "MOVSS XMM0, [0BE089Ch]");
+    disas_test1(Fuzzy_True, (const unsigned char*)"\x66\x0F\x29\x55\x90", 0x8855, "MOVAPD [RBP-70h], XMM2");
+    disas_test1(Fuzzy_True, (const unsigned char*)"\xF2\x0F\x5A\xCE", 0, "CVTSD2SS XMM1, XMM6");
+    disas_test1(Fuzzy_True, (const unsigned char*)"\x66\x66\x66\x0F\x1F\x84\x00\x00\x00\x00\x00", 0x8855, "NOP");
     disas_test1(Fuzzy_True, (const unsigned char*)"\x48\x05\x90\x90\x90\x90", 0x8855, "ADD RAX, 0FFFFFFFF90909090h"); // checked in IDA
     disas_test1(Fuzzy_True, (const unsigned char*)"\x48\x0F\x90\x90\x90\x90\x90\x90", 0x88ff, "SETO [RAX-6F6F6F70h]");
-    disas_test1(Fuzzy_True, (const unsigned char*)"\x0F\x1F\x40\x00", 0x1234, "NOP [RAX]");
+    disas_test1(Fuzzy_True, (const unsigned char*)"\x0F\x1F\x40\x00", 0x1234, "NOP");
     disas_test1(Fuzzy_True, (const unsigned char*)"\x40\x0F\xB6\xC6", 0x300, "MOVZX EAX, SIL");
     disas_test1(Fuzzy_True, (const unsigned char*)"\x40\x0F\xB6\xEF", 0x300, "MOVZX EBP, DIL");
     disas_test1(Fuzzy_True, (const unsigned char*)"\x40\x5B", 0x300, "POP RBX");

@@ -325,7 +325,8 @@ bool Da_stage1_load_prefixes_escapes_opcode (Da_stage1 *p, disas_address adr_of_
                 return false;
             if ((next_byte&0xF0)==0x40)
             {
-                oassert (!"second 4x prefix present!");
+                fprintf (stderr, "%s() second 4x prefix present at 0x" PRI_ADR_HEX "!", __FUNCTION__, adr_of_ins);
+                return false;
             };
         };
     };
@@ -748,22 +749,22 @@ bool Da_stage1_Da_stage1 (Da_stage1 *p, TrueFalseUndefined x64_code, disas_addre
 
     // opcode not found
 
-    printf ("adr_of_ins=0x" PRI_SIZE_T_HEX " opcode not found, opc=%02X, p->x64=%d, prefixes=", 
+    fprintf (stderr, "adr_of_ins=0x" PRI_SIZE_T_HEX " opcode not found, opc=%02X, p->x64=%d, prefixes=", 
             adr_of_ins, opc, p->x64);
 
-    if (p->x64)   printf("X64 ");
-    if (p->REX_W) printf("REX_W ");
-    if (p->REX_R) printf("REX_R ");
-    if (p->REX_X) printf("REX_X ");
-    if (p->REX_B) printf("REX_B ");
+    if (p->x64)   fprintf(stderr, "X64 ");
+    if (p->REX_W) fprintf(stderr, "REX_W ");
+    if (p->REX_R) fprintf(stderr, "REX_R ");
+    if (p->REX_X) fprintf(stderr, "REX_X ");
+    if (p->REX_B) fprintf(stderr, "REX_B ");
 
-    if (p->ESCAPE_0F) printf("0F ");
-    if (p->ESCAPE_F2) printf("F2 ");
-    if (p->ESCAPE_F3) printf("F3 ");
-    if (p->PREFIX_66_is_present) printf("66 ");
-    if (p->PREFIX_67) printf("67 ");
+    if (p->ESCAPE_0F) fprintf(stderr, "0F ");
+    if (p->ESCAPE_F2) fprintf(stderr, "F2 ");
+    if (p->ESCAPE_F3) fprintf(stderr, "F3 ");
+    if (p->PREFIX_66_is_present) fprintf(stderr, "66 ");
+    if (p->PREFIX_67) fprintf(stderr, "67 ");
 
-    printf ("\n");
+    fprintf (stderr, "\n");
 
     return false;
 };
@@ -891,7 +892,7 @@ void init_adr_in_Da_op (Da_op *out)
     out->adr.adr_disp_pos=0;
 };
 
-static void create_Da_op (op_source op, Da_stage1 *stage1, disas_address ins_adr, unsigned ins_len, Da_op *out)
+static bool create_Da_op (op_source op, Da_stage1 *stage1, disas_address ins_adr, unsigned ins_len, Da_op *out)
 {
     oassert (op!=OP_ABSENT);
 
@@ -1061,6 +1062,8 @@ static void create_Da_op (op_source op, Da_stage1 *stage1, disas_address ins_adr
         case OP_IMM64_AS_ABSOLUTE_ADDRESS_PTR_TO_BYTE:
         case OP_IMM64_AS_ABSOLUTE_ADDRESS_PTR_TO_DWORD:
 
+                    if (stage1->IMM64_loaded==false)
+                        return false; // yet. it's a hack!
                     oassert (stage1->IMM64_loaded==true);
                     out->type=DA_OP_TYPE_VALUE_IN_MEMORY;
                     init_adr_in_Da_op(out);
@@ -1292,8 +1295,8 @@ static void create_Da_op (op_source op, Da_stage1 *stage1, disas_address ins_adr
                         case 3: out->reg=R_DS; break;
                         case 4: out->reg=R_FS; break;
                         case 5: out->reg=R_GS; break;
-                        case 6: oassert(0); fatal_error(); break; // reserved
-                        case 7: oassert(0); fatal_error(); break; // reserved
+                        case 6: return false; // oassert(0); fatal_error(); break; // reserved
+                        case 7: return false; // oassert(0); fatal_error(); break; // reserved
                     }
                     break;
 
@@ -1418,6 +1421,7 @@ static void create_Da_op (op_source op, Da_stage1 *stage1, disas_address ins_adr
                                 {
                                     case 0 ... 5:
                                     case 7:  
+                                        return false; // yet
                                         oassert (!"PREFIX_67=true, we don't process 16-bit part of modrm table (yet)");
                                     case 6: // take disp16
                                         oassert (stage1->DISP16_loaded==true);
@@ -1450,6 +1454,8 @@ static void create_Da_op (op_source op, Da_stage1 *stage1, disas_address ins_adr
                                 default: oassert(0); fatal_error();
                             };
 
+                            if (stage1->PREFIX_67==true) // not handling it yet
+                                return false;
                             oassert (stage1->PREFIX_67==false); // yet...
                             switch (stage1->MODRM.s.RM)
                             {
@@ -1523,6 +1529,8 @@ static void create_Da_op (op_source op, Da_stage1 *stage1, disas_address ins_adr
                                 default: oassert(0); fatal_error();
                             };
 
+                            if (stage1->PREFIX_67==true)
+                                return false; // we don't handle it yet.
                             oassert (stage1->PREFIX_67==false); // yet...
                             switch (stage1->MODRM.s.RM)
                             {
@@ -1672,6 +1680,8 @@ static void create_Da_op (op_source op, Da_stage1 *stage1, disas_address ins_adr
                     L ("unknown op=%d\n", op);
                     oassert(0); fatal_error();
     };
+
+    return true;
 };
 
 static op_source shrink_op_32_to_16 (op_source op)
@@ -1743,7 +1753,7 @@ static op_source promote_op_32_to_64 (op_source op)
     };
 };
 
-void Da_stage1_into_result (Da_stage1 *stage1, disas_address adr_of_ins, Da* out)
+bool Da_stage1_into_result (Da_stage1 *stage1, disas_address adr_of_ins, Da* out)
 {
     Ins_definition *i;
     uint64_t fl;
@@ -1792,20 +1802,26 @@ void Da_stage1_into_result (Da_stage1 *stage1, disas_address adr_of_ins, Da* out
     out->ops_total=0;
     if (i->op1!=OP_ABSENT) 
     { 
-        create_Da_op (new_op1, stage1, adr_of_ins, out->ins_len, &out->op[0]);
+        if (create_Da_op (new_op1, stage1, adr_of_ins, out->ins_len, &out->op[0])==false)
+            return false;
         out->ops_total=1;
     }
     if (i->op2!=OP_ABSENT) 
     {
-        create_Da_op (new_op2, stage1, adr_of_ins, out->ins_len, &out->op[1]);
+        if (create_Da_op (new_op2, stage1, adr_of_ins, out->ins_len, &out->op[1])==false)
+            return false;
         out->ops_total=2;
     };
     if (i->op3!=OP_ABSENT)
     {
-        create_Da_op (new_op3, stage1, adr_of_ins, out->ins_len, &out->op[2]);
+        if (create_Da_op (new_op3, stage1, adr_of_ins, out->ins_len, &out->op[2])==false)
+            return false;
         out->ops_total=3;
     };
-    
+
+    if (out->ins_code==I_NOP && out->ops_total>0) // 0x1F case..
+        out->ops_total=0;
+
     // NOP (0x90) is absent in tables...
     if (out->ins_code==I_XCHG && (Da_op_equals (&out->op[0], &out->op[1])))
     {
@@ -1813,6 +1829,7 @@ void Da_stage1_into_result (Da_stage1 *stage1, disas_address adr_of_ins, Da* out
         out->ops_total=0;
     };
     out->struct_size=sizeof(Da)-(3-out->ops_total)*sizeof(Da_op);
+    return true;
 };
 
 bool Da_Da (TrueFalseUndefined x64_code, uint8_t* ptr_to_ins, disas_address adr_of_ins, Da* out)
@@ -1826,13 +1843,12 @@ bool Da_Da (TrueFalseUndefined x64_code, uint8_t* ptr_to_ins, disas_address adr_
     if (Da_stage1_Da_stage1(&stage1, x64_code, adr_of_ins)==false)
     {
 #ifdef _DEBUG
-        printf ("Da_stage1_Da_stage1() failed\n");
+        fprintf (stderr, "Da_stage1_Da_stage1() failed\n");
 #endif
         return false;
     };
-    Da_stage1_into_result (&stage1, adr_of_ins, out);
-
-    return true;
+    
+    return Da_stage1_into_result (&stage1, adr_of_ins, out);
 };
 
 bool Da_Da_callbacks (TrueFalseUndefined x64_code, disas_address adr_of_ins, 
@@ -1851,8 +1867,8 @@ bool Da_Da_callbacks (TrueFalseUndefined x64_code, disas_address adr_of_ins,
     out->ins_code=I_INVALID;
     if (Da_stage1_Da_stage1(&stage1, x64_code, adr_of_ins)==false)
         return false;
-    Da_stage1_into_result (&stage1, adr_of_ins, out);
-    return true;
+
+    return Da_stage1_into_result (&stage1, adr_of_ins, out);
 };
 
 bool Da_op_is_reg(Da_op *op, X86_register reg)
@@ -2180,6 +2196,20 @@ bool Da_is_RET (Da* d, uint16_t * out_X)
         *out_X = obj_get_as_wyde(&d->op[0].val._v);
     else
         *out_X = 0;
+    return true;
+};
+
+bool Da_2nd_op_is_disp_only (Da* d, uint64_t disp)
+{
+    if (d->ops_total<2)
+        return false;
+    if (d->op[1].adr.adr_base!=R_ABSENT)
+        return false;
+    if (d->op[1].adr.adr_index!=R_ABSENT)
+        return false;
+    if (d->op[1].adr.adr_disp!=disp)
+        return false;
+
     return true;
 };
 
