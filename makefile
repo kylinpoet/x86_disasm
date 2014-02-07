@@ -41,7 +41,7 @@ clean:
 
 -include $(OBJECTS:.o=.d)
 
-$(OUTDIR)/%.o: %.c
+$(OUTDIR)/%.o: %.c x86_tbl_entries.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c $< -o $@
 
 %.d: %.c
