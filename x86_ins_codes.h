@@ -338,6 +338,10 @@ typedef enum Ins_codes_t
     I_PCMPEQW,
     I_PACKSSWB,
     I_PMOVMSKB,
+    I_PUNPCKHDQ,
+    I_PCMPGTD,
+    I_PACKSSDW,
+    I_MULSS,
 
     I_MAX_INS
 } Ins_codes;
