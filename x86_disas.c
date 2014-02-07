@@ -307,7 +307,7 @@ bool Da_stage1_load_prefixes_escapes_opcode (Da_stage1 *p, disas_address adr_of_
 
     if (p->x64)
     {
-        // ищем 4x-префиксы
+        // let's find 4x-prefixes
         if ((next_byte&0xF0)==0x40)
         {
             p->REX_W=p->REX_R=p->REX_X=p->REX_B=false;
@@ -325,7 +325,8 @@ bool Da_stage1_load_prefixes_escapes_opcode (Da_stage1 *p, disas_address adr_of_
                 return false;
             if ((next_byte&0xF0)==0x40)
             {
-                fprintf (stderr, "%s() second 4x prefix present at 0x" PRI_ADR_HEX "!", __FUNCTION__, adr_of_ins);
+                fprintf (stderr, "%s() second 4x prefix (0x%02X) present at 0x" PRI_ADR_HEX "!\n", 
+                        __FUNCTION__, next_byte, adr_of_ins);
                 return false;
             };
         };
@@ -367,6 +368,7 @@ void Da_stage1_clear(Da_stage1 *p)
     p->len=0;
     p->REX_prefix_seen=0;
     p->REX_W=p->REX_R=p->REX_X=p->REX_B=0;
+    p->SIB_loaded=false;
 };
 
 // только эта часть дизасма что-то вытягивает из памяти
@@ -375,7 +377,8 @@ bool Da_stage1_Da_stage1 (Da_stage1 *p, TrueFalseUndefined x64_code, disas_addre
     uint8_t opc, mask;
     bool PREFIX66_may_present, PREFIX66_allowed_and_present;
 
-    //printf (__FUNCTION__"()\n");
+    if (dbg_print)
+        printf ("%s() begin\n", __FUNCTION__);
 
     p->cur_adr=adr_of_ins;
     Da_stage1_clear(p);
@@ -496,11 +499,16 @@ bool Da_stage1_Da_stage1 (Da_stage1 *p, TrueFalseUndefined x64_code, disas_addre
                 continue;
             };
             // second opcode is correct here
+            if (dbg_print)
+                printf ("len++ at %s:%d\n", __FUNCTION__, __LINE__);
+            p->len++;
         };
 
         // here we found correct tbl_p
         // load everything
 
+        if (dbg_print)
+            printf ("len++ at %s:%d\n", __FUNCTION__, __LINE__);
         p->len++;
 
         p->ins_code=ins_tbl[p->tbl_p].ins_code;
@@ -518,6 +526,8 @@ bool Da_stage1_Da_stage1 (Da_stage1 *p, TrueFalseUndefined x64_code, disas_addre
                     printf ("%s() line %d\n", __func__, __LINE__);
                 return false;
             };
+            if (dbg_print)
+                printf ("len++ at %s:%d\n", __FUNCTION__, __LINE__);
             p->len++;
 
             //printf ("MODRM=0x%02X MOD=%d REG=%d RM=%d\n", p->MODRM.as_byte, p->MODRM.s.MOD, p->MODRM.s.REG, p->MODRM.s.RM);
@@ -533,6 +543,8 @@ bool Da_stage1_Da_stage1 (Da_stage1 *p, TrueFalseUndefined x64_code, disas_addre
                )
             {
                 Da_stage1_unget_byte(p); // push back mod/rm byte
+                if (dbg_print)
+                    printf ("len-=2 at %s:%d\n", __FUNCTION__, __LINE__);
                 p->len--;
                 p->len--;
                 p->tbl_p++;
@@ -552,6 +564,8 @@ bool Da_stage1_Da_stage1 (Da_stage1 *p, TrueFalseUndefined x64_code, disas_addre
                )
             {
                 Da_stage1_unget_byte(p); // push back mod/rm byte
+                if (dbg_print)
+                    printf ("len-=2 at %s:%d\n", __FUNCTION__, __LINE__);
                 p->len--;
                 p->len--;
                 p->tbl_p++;
@@ -564,6 +578,8 @@ bool Da_stage1_Da_stage1 (Da_stage1 *p, TrueFalseUndefined x64_code, disas_addre
                )
             {
                 Da_stage1_unget_byte(p); // push back mod/rm byte
+                if (dbg_print)
+                    printf ("len-=2 at %s:%d\n", __FUNCTION__, __LINE__);
                 p->len--;
                 p->len--;
                 p->tbl_p++;
@@ -589,6 +605,8 @@ bool Da_stage1_Da_stage1 (Da_stage1 *p, TrueFalseUndefined x64_code, disas_addre
                             printf ("%s() line %d\n", __func__, __LINE__);
                         return false;
                     };
+                    if (dbg_print)
+                        printf ("len++ at %s:%d\n", __FUNCTION__, __LINE__);
                     p->len++;
                     p->SIB_loaded=true;
                 };
@@ -603,6 +621,8 @@ bool Da_stage1_Da_stage1 (Da_stage1 *p, TrueFalseUndefined x64_code, disas_addre
                             printf ("%s() line %d\n", __func__, __LINE__);
                         return false;
                     };
+                    if (dbg_print)
+                        printf ("len++ at %s:%d\n", __FUNCTION__, __LINE__);
                     p->len++;
                     p->DISP8_loaded=true;
                 };
@@ -618,6 +638,14 @@ bool Da_stage1_Da_stage1 (Da_stage1 *p, TrueFalseUndefined x64_code, disas_addre
                         return false;
                     };
                     p->DISP32_pos=p->cur_adr-sizeof(uint32_t);
+                    if (dbg_print)
+                    {
+                        printf ("len+=4 at %s:%d. MODRM.REG=%d, MODRM.RM=%d, MODRM.MOD=%d\n", __FUNCTION__, __LINE__,
+                                p->MODRM.s.REG,
+                                p->MODRM.s.RM,
+                                p->MODRM.s.MOD);
+                        printf ("SIB_loaded=%d, SIB.base=%d\n", p->SIB_loaded, p->SIB.s.base);
+                    };
                     p->len+=4;
                     p->DISP32_loaded=true;
                 };
@@ -633,6 +661,8 @@ bool Da_stage1_Da_stage1 (Da_stage1 *p, TrueFalseUndefined x64_code, disas_addre
                             printf ("%s() line %d\n", __func__, __LINE__);
                         return false;
                     };
+                    if (dbg_print)
+                        printf ("len++ at %s:%d\n", __FUNCTION__, __LINE__);
                     p->len++;
                     p->DISP8_loaded=true;
                 };
@@ -645,6 +675,8 @@ bool Da_stage1_Da_stage1 (Da_stage1 *p, TrueFalseUndefined x64_code, disas_addre
                             printf ("%s() line %d\n", __func__, __LINE__);
                         return false;
                     };
+                    if (dbg_print)
+                        printf ("len+=2 at %s:%d\n", __FUNCTION__, __LINE__);
                     p->len+=2;
                     p->DISP16_loaded=true;
                 };
@@ -662,6 +694,8 @@ bool Da_stage1_Da_stage1 (Da_stage1 *p, TrueFalseUndefined x64_code, disas_addre
                     printf ("%s() line %d\n", __func__, __LINE__);
                 return false;
             };
+            if (dbg_print)
+                printf ("len+2 at %s:%d\n", __FUNCTION__, __LINE__);
             p->len+=2;
             p->IMM16_loaded=true;
         };
@@ -674,6 +708,8 @@ bool Da_stage1_Da_stage1 (Da_stage1 *p, TrueFalseUndefined x64_code, disas_addre
                     printf ("%s() line %d\n", __func__, __LINE__);
                 return false;
             };
+            if (dbg_print)
+                printf ("len++ at %s:%d\n", __FUNCTION__, __LINE__);
             p->len++;
             p->IMM8_loaded=true;
         };
@@ -688,6 +724,8 @@ bool Da_stage1_Da_stage1 (Da_stage1 *p, TrueFalseUndefined x64_code, disas_addre
                 return false;
             };
             p->IMM32_pos=p->cur_adr-sizeof(uint32_t);
+            if (dbg_print)
+                printf ("len+4 at %s:%d\n", __FUNCTION__, __LINE__);
             p->len+=4;
             p->IMM32_loaded=true;
         };
@@ -703,6 +741,8 @@ bool Da_stage1_Da_stage1 (Da_stage1 *p, TrueFalseUndefined x64_code, disas_addre
             };
             //L ("IMM64=0x" PRI_REG_HEX "\n", IMM64);
             p->IMM64_pos=p->cur_adr-sizeof(uint64_t);
+            if (dbg_print)
+                printf ("len+=8 at %s:%d\n", __FUNCTION__, __LINE__);
             p->len+=8;
             p->IMM64_loaded=true;
         };
@@ -718,6 +758,8 @@ bool Da_stage1_Da_stage1 (Da_stage1 *p, TrueFalseUndefined x64_code, disas_addre
                     return false;
                 };
                 p->PTR_pos=p->cur_adr-sizeof(uint64_t);
+                if (dbg_print)
+                    printf ("len+=8 at %s:%d\n", __FUNCTION__, __LINE__);
                 p->len+=sizeof(uint64_t);
                 p->PTR_loaded=true;
             }
@@ -732,6 +774,8 @@ bool Da_stage1_Da_stage1 (Da_stage1 *p, TrueFalseUndefined x64_code, disas_addre
                 };
                 p->PTR=tmp;
                 p->PTR_pos=p->cur_adr-sizeof(uint32_t);
+                if (dbg_print)
+                    printf ("len+4 at %s:%d\n", __FUNCTION__, __LINE__);
                 p->len+=4;
                 p->PTR_loaded=true;
             };
@@ -1838,6 +1882,8 @@ bool Da_Da (TrueFalseUndefined x64_code, uint8_t* ptr_to_ins, disas_address adr_
 
     stage1.use_callbacks=false;
     stage1.cur_ptr=ptr_to_ins;
+
+    //printf ("%s() adr_of_ins=0x" PRI_ADR_HEX "\n", __FUNCTION__, adr_of_ins);
 
     out->ins_code=I_INVALID;
     if (Da_stage1_Da_stage1(&stage1, x64_code, adr_of_ins)==false)
