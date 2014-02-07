@@ -326,6 +326,18 @@ typedef enum Ins_codes_t
     I_XOR,
     I_XORPD,
     I_XORPS,
+    I_PADDSW,
+    I_PMAXSD,
+    I_PMINSD,
+    I_PSRLD,
+    I_PADDD,
+    I_PSUBSW,
+    I_PUNPCKHWD,
+    I_PCMPGTW,
+    I_PAND,
+    I_PCMPEQW,
+    I_PACKSSWB,
+    I_PMOVMSKB,
 
     I_MAX_INS
 } Ins_codes;

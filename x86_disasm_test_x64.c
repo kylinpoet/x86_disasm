@@ -15,11 +15,20 @@ void x86_disas_test_64()
 {
     //printf (__FUNCTION__"() begin\n");
 
-    //disas_test1(Fuzzy_True, (const unsigned char*)"\x48\x8D\x68\xB8", 0x8855, "?"); // checked in IDA
-
-    // lea rcx,[00000001405BD388] 
-    //disas_test1(Fuzzy_True, (const unsigned char*)"\x48\x8D\x0D\x9D\x12\x56\x00", 0x14005C0E4, "?");
-
+    disas_test1(Fuzzy_True, (const unsigned char*)"\x66\x0F\xD7\xC3", 3, "PMOVMSKB EAX, XMM3");
+    disas_test1(Fuzzy_True, (const unsigned char*)"\x66\x0F\x63\xDB", 3, "PACKSSWB XMM3, XMM3");
+    disas_test1(Fuzzy_True, (const unsigned char*)"\x66\x0F\x75\xD8", 3, "PCMPEQW XMM3, XMM0");
+    disas_test1(Fuzzy_True, (const unsigned char*)"\x66\x0F\xDB\xC1", 3, "PAND XMM0, XMM1");
+    disas_test1(Fuzzy_True, (const unsigned char*)"\x66\x0F\x65\xCA", 3, "PCMPGTW XMM1, XMM2");
+    disas_test1(Fuzzy_True, (const unsigned char*)"\x66\x0F\x69\xC4", 3, "PUNPCKHWD XMM0, XMM4");
+    disas_test1(Fuzzy_True, (const unsigned char*)"\x66\x41\x0F\xE9\x4C\x09\xF0", 3, "PSUBSW XMM1, [R9+RCX-10h]");
+    disas_test1(Fuzzy_True, (const unsigned char*)"\x0F\x1F\x00", 3, "NOP");
+    disas_test1(Fuzzy_True, (const unsigned char*)"\x48\x8B\x42\x48", 3, "MOV RAX, [RDX+48h]");
+    disas_test1(Fuzzy_True, (const unsigned char*)"\x66\x0F\xFE\xCB", 3, "PADDD XMM1, XMM3");
+    disas_test1(Fuzzy_True, (const unsigned char*)"\x66\x0F\xD2\xD8", 3, "PSRLD XMM3, XMM0");
+    disas_test1(Fuzzy_True, (const unsigned char*)"\x66\x0F\x38\x39\xDA", 3, "PMINSD XMM3, XMM2");
+    disas_test1(Fuzzy_True, (const unsigned char*)"\x66\x0F\x38\x3D\xD0", 3, "PMAXSD XMM2, XMM0");
+    disas_test1(Fuzzy_True, (const unsigned char*)"\x66\x0F\xED\xCB", 3, "PADDSW XMM1, XMM3");
     disas_test1(Fuzzy_True, (const unsigned char*)"\x66\x0F\xD1\xD8", 3, "PSRLW XMM3, XMM0");
     disas_test1(Fuzzy_True, (const unsigned char*)"\x66\x0F\xEA\xD9", 3, "PMINSW XMM3, XMM1");
     disas_test1(Fuzzy_True, (const unsigned char*)"\x66\x0F\xEE\xD8", 3, "PMAXSW XMM3, XMM0");

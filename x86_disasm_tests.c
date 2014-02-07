@@ -13,7 +13,7 @@
 #include "stuff.h"
 #include "strbuf.h"
 #include "x86_disas.h"
-
+#include "fmt_utils.h"
 #include "XOR_tests.h"
 
 void disas_test1(TrueFalseUndefined x64, const unsigned char* code, disas_address adr, const char *must_be)
@@ -36,7 +36,8 @@ void disas_test1(TrueFalseUndefined x64, const unsigned char* code, disas_addres
         printf ("%s(x64=%d, )->[%s]\n", __FUNCTION__, x64, t.buf);
         printf ("must_be=[%s]\n", must_be);
         for (i=0; i<d.ins_len; i++)
-            printf ("code[%d]=0x%02X\n", i, code[i]);
+            printf ("code["PRI_SIZE_T"]=0x%02X\n", i, code[i]);
+        printf ("ins_len=%d\n", d.ins_len);
         //debugger_breakpoint();
         exit(0);
     };
@@ -65,7 +66,7 @@ void disas_test2_2op(TrueFalseUndefined x64, const unsigned char* code, disas_ad
         printf ("value1_must_be=%d\n", value1_must_be);
         printf ("value2_must_be=%d\n", value2_must_be);
         for (i=0; i<d.ins_len; i++)
-            printf ("code[%d]=0x%02X\n", i, code[i]);
+            printf ("code["PRI_SIZE_T"]=0x%02X\n", i, code[i]);
         exit(0);
     };
     strbuf_deinit(&t);
