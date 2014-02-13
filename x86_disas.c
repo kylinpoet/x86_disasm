@@ -2245,7 +2245,7 @@ bool Da_is_RET (Da* d, uint16_t * out_X)
     return true;
 };
 
-bool Da_2nd_op_is_disp_only (Da* d, uint64_t disp)
+bool Da_2nd_op_is_disp_only (Da* d)
 {
     if (d->ops_total<2)
         return false;
@@ -2253,10 +2253,15 @@ bool Da_2nd_op_is_disp_only (Da* d, uint64_t disp)
         return false;
     if (d->op[1].adr.adr_index!=R_ABSENT)
         return false;
-    if (d->op[1].adr.adr_disp!=disp)
-        return false;
 
     return true;
+};
+
+uint64_t Da_2nd_op_get_disp (Da *d)
+{
+    oassert(Da_2nd_op_is_disp_only (d));
+
+    return d->op[1].adr.adr_disp;
 };
 
 /* vim: set expandtab ts=4 sw=4 : */

@@ -139,7 +139,8 @@ const char* disas1_ins_code_to_string (Ins_codes ins_code);
 void print_unused_tbl_entries();
 #endif
 
-bool Da_2nd_op_is_disp_only (Da* d, uint64_t disp);
+bool Da_2nd_op_is_disp_only (Da* d);
+uint64_t Da_2nd_op_get_disp (Da *d);
 
 #ifdef  __cplusplus
 }

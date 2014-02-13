@@ -1,3 +1,4 @@
+    disas_test1(Fuzzy_False, (const unsigned char*)"\xD3\x26", 0x123456, "SHL [ESI], CL");
     disas_test1(Fuzzy_False, (const unsigned char*)"\xD9\xE0", 0x123456, "FCHS");
     disas_test1(Fuzzy_False, (const unsigned char*)"\xD9\xE1", 0x123456, "FABS");
     disas_test1(Fuzzy_False, (const unsigned char*)"\xD9\xE5", 0x123456, "FXAM");

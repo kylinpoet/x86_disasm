@@ -15,6 +15,7 @@ void x86_disas_test_64()
 {
     //printf (__FUNCTION__"() begin\n");
 
+    disas_test1(Fuzzy_True, (const unsigned char*)"\xF3\x48\x0F\x2A\xC0", 3, "CVTSI2SS XMM0, RAX");
     disas_test1(Fuzzy_True, (const unsigned char*)"\xF3\x0F\x59\xC0", 3, "MULSS XMM0, XMM0");
     disas_test1(Fuzzy_True, (const unsigned char*)"\x66\x0F\x6B\xDB", 3, "PACKSSDW XMM3, XMM3");
     disas_test1(Fuzzy_True, (const unsigned char*)"\x66\x0F\x66\xCA", 3, "PCMPGTD XMM1, XMM2");

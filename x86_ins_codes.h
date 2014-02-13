@@ -77,6 +77,7 @@ typedef enum Ins_codes_t
     I_CVTSD2SI,
     I_CVTSD2SS,
     I_CVTSI2SD,
+    I_CVTSI2SS,
     I_CVTTSD2SI,
     I_CWD,
     I_CWDE,
