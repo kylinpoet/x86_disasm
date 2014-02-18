@@ -976,7 +976,7 @@ static bool create_Da_op (op_source op, Da_stage1 *stage1, disas_address ins_adr
             break;
 
         case OP_1:
-            if (value_in(stage1->ins_code, I_ROL, I_ROR, I_RCL, I_RCR, I_SHL, I_SHR, I_SAR))
+            if (value_in7(stage1->ins_code, I_ROL, I_ROR, I_RCL, I_RCR, I_SHL, I_SHR, I_SAR))
             {
                 out->type=DA_OP_TYPE_VALUE;
                 out->value_width_in_bits=8;
@@ -2245,9 +2245,49 @@ bool Da_is_RET (Da* d, uint16_t * out_X)
     return true;
 };
 
+bool Da_1st_op_is_disp_only (Da* d)
+{
+    if (d->ops_total!=1)
+        return false;
+    if (d->op[0].type!=DA_OP_TYPE_VALUE_IN_MEMORY)
+        return false;
+    if (d->op[0].adr.adr_base!=R_ABSENT)
+        return false;
+    if (d->op[0].adr.adr_index!=R_ABSENT)
+        return false;
+
+    return true;
+};
+
+REG Da_1st_op_get_disp (Da *d)
+{
+    oassert(Da_1st_op_is_disp_only (d));
+
+    return d->op[0].adr.adr_disp;
+};
+
+bool Da_1st_op_is_val (Da* d)
+{
+    if (d->ops_total!=1)
+        return false;
+    if (d->op[0].type!=DA_OP_TYPE_VALUE)
+        return false;
+
+    return true;
+};
+
+REG Da_1st_op_get_val (Da *d)
+{
+    oassert(Da_1st_op_is_val (d));
+
+    return obj_get_as_REG (&d->op[0].val._v);
+};
+
 bool Da_2nd_op_is_disp_only (Da* d)
 {
     if (d->ops_total<2)
+        return false;
+    if (d->op[1].type!=DA_OP_TYPE_VALUE_IN_MEMORY)
         return false;
     if (d->op[1].adr.adr_base!=R_ABSENT)
         return false;
@@ -2257,7 +2297,7 @@ bool Da_2nd_op_is_disp_only (Da* d)
     return true;
 };
 
-uint64_t Da_2nd_op_get_disp (Da *d)
+REG Da_2nd_op_get_disp (Da *d)
 {
     oassert(Da_2nd_op_is_disp_only (d));
 
