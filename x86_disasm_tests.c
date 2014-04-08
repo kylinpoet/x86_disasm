@@ -192,7 +192,6 @@ int main()
 
     x86_disas_test_32();
     x86_disas_test_64();
-
 #ifdef _DEBUG
     //print_unused_tbl_entries();
 #endif

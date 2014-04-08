@@ -43,6 +43,7 @@ static X86_register _8_registers_by_idx[]=
 { R_AL, R_CL, R_DL, R_BL, R_AH, R_CH, R_DH, R_BH, R_R8L, R_R9L, R_R10L, R_R11L, R_R12L, R_R13L, R_R14L, R_R15L };
 
 static bool dbg_print=false;
+//static bool dbg_print=true;
 
 #ifdef _DEBUG
 void dump_Ins_definition(Ins_definition *d)
@@ -79,7 +80,7 @@ void print_unused_tbl_entries()
 };
 #endif
 
-static unsigned precomputed_ins_pointers[0x100]={0};
+static int precomputed_ins_pointers[0x100];
 static bool precomputed_ins_pointers_present=false;
 
 static void precompute_ins_pointers()
@@ -87,6 +88,9 @@ static void precompute_ins_pointers()
     int i, entries_total=0;
     unsigned cur_opc;
     Ins_definition *d;
+
+    for (int i=0; i<256; i++)
+        precomputed_ins_pointers[i]=-1;
 
     //printf ("ins_tbl=0x%p\n", ins_tbl);
 
@@ -109,9 +113,9 @@ static void precompute_ins_pointers()
     for (i=0, cur_opc=0; ins_tbl[i].ins_code!=I_INVALID; i++)
     {
         d=&ins_tbl[i];
-        if (d->opc > cur_opc)
+        if (d->opc >= cur_opc)
         {
-            if (precomputed_ins_pointers[d->opc]==0)
+            if (precomputed_ins_pointers[d->opc]==-1)
             {
                 precomputed_ins_pointers[d->opc]=i;
                 if (IS_SET(d->flags, F_REG32_IS_LOWEST_PART_OF_1ST_BYTE))
@@ -129,6 +133,12 @@ static void precompute_ins_pointers()
         };
     }; 
     precomputed_ins_pointers_present=true;
+#if 0
+    // dump table
+    for (int i=0; i<256; i++)
+        printf ("%s() table element 0x%02X=%d\n", __func__, i, precomputed_ins_pointers[i]);
+    exit(0);
+#endif    
 };
 
 bool Da_stage1_get_next_byte(Da_stage1* p, uint8_t *out)
@@ -252,48 +262,133 @@ bool Da_stage1_load_prefixes_escapes_opcode (Da_stage1 *p, disas_address adr_of_
         switch (next_byte)
         {
             case 0x36:
+                if (IS_SET (p->PREFIXES, PREFIX_SS))
+                {
+                    //printf ("%s():%d SS prefix is already set! aborting\n", __func__, __LINE__);
+                    return false;
+                };
                 p->PREFIXES|=PREFIX_SS; 
+                p->len++; 
+                if (Da_stage1_get_next_byte(p, &next_byte)==false)
+                    return false;
+                if (dbg_print)
+                    printf ("%s():%d next_byte=0x%x\n", __func__, __LINE__, next_byte);
+                break;
+            case 0x2E:
+                if (IS_SET (p->PREFIXES, PREFIX_CS))
+                {
+                    //printf ("%s():%d CS prefix is already set! aborting\n", __func__, __LINE__);
+                    return false;
+                };
+                p->PREFIXES|=PREFIX_CS; 
+                p->len++; 
+                if (Da_stage1_get_next_byte(p, &next_byte)==false)
+                    return false;
+                break;
+            case 0x3E:
+                if (IS_SET (p->PREFIXES, PREFIX_DS))
+                {
+                    //printf ("%s():%d DS prefix is already set! aborting\n", __func__, __LINE__);
+                    return false;
+                };
+                p->PREFIXES|=PREFIX_DS; 
+                p->len++; 
+                if (Da_stage1_get_next_byte(p, &next_byte)==false)
+                    return false;
+                break;
+            case 0x26:
+                if (IS_SET (p->PREFIXES, PREFIX_ES))
+                {
+                    //printf ("%s():%d ES prefix is already set! aborting\n", __func__, __LINE__);
+                    return false;
+                };
+                p->PREFIXES|=PREFIX_ES; 
                 p->len++; 
                 if (Da_stage1_get_next_byte(p, &next_byte)==false)
                     return false;
                 break;
             case 0x64:
+                if (IS_SET (p->PREFIXES, PREFIX_FS))
+                {
+                    //printf ("%s():%d FS prefix is already set! aborting\n", __func__, __LINE__);
+                    return false;
+                };
                 p->PREFIXES|=PREFIX_FS; 
                 p->len++;
                 if (Da_stage1_get_next_byte(p, &next_byte)==false)
                     return false;
                 break;
             case 0x65:
+                if (IS_SET (p->PREFIXES, PREFIX_GS))
+                {
+                    //printf ("%s():%d GS prefix is already set! aborting\n", __func__, __LINE__);
+                    return false;
+                };
                 p->PREFIXES|=PREFIX_GS; 
                 p->len++; 
                 if (Da_stage1_get_next_byte(p, &next_byte)==false)
                     return false;
                 break;
             case 0xF0:
+                /*
+                if (IS_SET (p->PREFIXES, PREFIX_LOCK))
+                {
+                    printf ("%s():%d LOCK prefix is already set! aborting\n", __func__, __LINE__);
+                    return false;
+                };
+                */
                 p->PREFIXES|=PREFIX_LOCK; 
                 p->len++; 
                 if (Da_stage1_get_next_byte(p, &next_byte)==false)
                     return false;
                 break;
             case 0xF2:
+                /*
+                if (p->ESCAPE_F2)
+                {
+                    printf ("%s():%d F2 prefix is already set! aborting\n", __func__, __LINE__);
+                    return false;
+                };
+                */
                 p->ESCAPE_F2=true; 
                 p->len++;
                 if (Da_stage1_get_next_byte(p, &next_byte)==false)
                     return false;
                 break;
             case 0xF3:
+                /*
+                if (p->ESCAPE_F3)
+                {
+                    printf ("%s():%d F3 prefix is already set! aborting\n", __func__, __LINE__);
+                    return false;
+                };
+                */
                 p->ESCAPE_F3=true; 
                 p->len++;
                 if (Da_stage1_get_next_byte(p, &next_byte)==false)
                     return false;
                 break;
             case 0x66:
+                /*
+                if (p->PREFIX_66_is_present)
+                {
+                    printf ("%s():%d 66 prefix is already set! aborting\n", __func__, __LINE__);
+                    return false;
+                };
+                */
                 p->PREFIX_66_is_present=true;
                 p->len++;
                 if (Da_stage1_get_next_byte(p, &next_byte)==false)
                     return false;
                 break;
             case 0x67:
+                /*
+                if (p->PREFIX_67)
+                {
+                    printf ("%s():%d 67 prefix is already set! aborting\n", __func__, __LINE__);
+                    return false;
+                };
+                */
                 p->PREFIX_67=true;
                 p->len++;
                 if (Da_stage1_get_next_byte(p, &next_byte)==false)
@@ -340,6 +435,8 @@ bool Da_stage1_load_prefixes_escapes_opcode (Da_stage1 *p, disas_address adr_of_
             return false;
     };
 
+    if (dbg_print)
+        printf ("%s():%d *out=0x%x\n", __func__, __LINE__, next_byte);
     *out=next_byte; // opcode
     return true;
 };
@@ -407,6 +504,12 @@ bool Da_stage1_Da_stage1 (Da_stage1 *p, TrueFalseUndefined x64_code, disas_addre
         precompute_ins_pointers();
 
     //p->tbl_p=0;
+    if (precomputed_ins_pointers[opc]==-1)
+    {
+        if (dbg_print)
+            printf ("%s():%d wrong opcode 0x%x\n", __func__, __LINE__, opc);
+        goto opcode_not_found;
+    };
     p->tbl_p=precomputed_ins_pointers[opc];
 
     while (ins_tbl[p->tbl_p].ins_code!=I_INVALID)
@@ -791,8 +894,8 @@ bool Da_stage1_Da_stage1 (Da_stage1 *p, TrueFalseUndefined x64_code, disas_addre
         return true;
     };
 
+opcode_not_found:
     // opcode not found
-
     fprintf (stderr, "adr_of_ins=0x" PRI_SIZE_T_HEX " opcode not found, opc=%02X, p->x64=%d, prefixes=", 
             adr_of_ins, opc, p->x64);
 
@@ -1809,6 +1912,9 @@ bool Da_stage1_into_result (Da_stage1 *stage1, disas_address adr_of_ins, Da* out
 
     i=&ins_tbl[stage1->tbl_p];
 
+    if (dbg_print)
+        printf ("%s() tbl_p=%d\n", __func__, stage1->tbl_p);
+
     fl=stage1->new_flags; // including "promoted" flags
 
     new_op1=i->op1; new_op2=i->op2; new_op3=i->op3;
@@ -2091,6 +2197,9 @@ void Da_ToString (Da *d, strbuf *out)
     if (IS_SET (d->prefix_codes, PREFIX_FS)) strbuf_addstr(out, "FS: ");
     if (IS_SET (d->prefix_codes, PREFIX_SS)) strbuf_addstr(out, "SS: ");
     if (IS_SET (d->prefix_codes, PREFIX_GS)) strbuf_addstr(out, "GS: ");
+    if (IS_SET (d->prefix_codes, PREFIX_CS)) strbuf_addstr(out, "CS: ");
+    if (IS_SET (d->prefix_codes, PREFIX_DS)) strbuf_addstr(out, "DS: ");
+    if (IS_SET (d->prefix_codes, PREFIX_ES)) strbuf_addstr(out, "ES: ");
 
     strbuf_addstr (out, disas1_ins_code_to_string (d->ins_code));
 

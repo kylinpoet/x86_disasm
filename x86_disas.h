@@ -34,6 +34,9 @@ typedef uint32_t disas_address;
 #define PREFIX_FS    1<<1
 #define PREFIX_SS    1<<2
 #define PREFIX_GS    1<<3
+#define PREFIX_CS    1<<4
+#define PREFIX_DS    1<<5
+#define PREFIX_ES    1<<6
 
 typedef enum _Da_coded_result_op_type
 {
